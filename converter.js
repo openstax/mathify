@@ -1,33 +1,23 @@
-// const system = require ('system');
 const fs = require('fs')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
 
 const writeFile = pify(fs.writeFile)
 
-// function getPath() {
-//   const path = fs.absolute(system.args[0])
-//   const inx = path.lastIndexOf('/')
-//   return fs.absolute(path.slice(0, inx) + '/..')
-// }
+const injectMathJax = async (inputPath, cssPath, outputPath) => {
+  function clearTerminal(){
+    if(process.platform == 'darwin'){
+      process.stdout.write('\033c')
+    }else if(process.platform == 'win32'){
+      process.stdout.write('\033c')
+    }
+  }
 
-// if (system.args.length !== 3 && system.args.length !== 4) {
-//   console.log('Usage: typeset.js FILE STYLE [OUTPUT]')
-//   browser.close();
-//   console.log("Status: " + status);
-// }
-// const url = system.args[1];
-const url = 'file:///mnt/c/Users/Thomas/Openstax/bakedpdf/u-physics-one-unit.xhtml'
-// const style = fs.isAbsolute(system.args[0])
-//   ? system.args[0]
-//   : fs.absolute(root_path + '/' + system.args[0]);
-// const output = system.args[3];
-const stylemj = './intro-business.css'
-const output = './out.html';
+  const url = `file://${inputPath}`
+  const stylemj = `${cssPath}`
+  const output = `${outputPath}`
 
-// const root_path = getPath();
-
-(async () => {
+  console.log('Starting puppeteer...')
   const browser = await puppeteer.launch({args: ['--no-sandbox']})
   const page = await browser.newPage()
 
@@ -40,6 +30,11 @@ const output = './out.html';
       done: false,
       status: 0
     }
+
+    console.log('Removing non-breaking spaces...')
+    let b = document.body
+    let withoutSpaces = b.innerHTML.replace(/&nbsp;/g,' ')
+    b = withoutSpaces
   })
 
   // Insert stylesheet
@@ -47,11 +42,13 @@ const output = './out.html';
   await page.evaluate(style => {
     const c = window.__c
 
+    console.log('Setting stylesheets...')
     c.style = document.createElement('link')
     c.style.rel = 'stylesheet'
     c.style.href = style
     document.body.appendChild(c.style)
 
+    console.log('Setting metadata...')
     const meta = document.createElement('meta')
     meta.setAttribute('charset', 'utf-8')
     document.head.appendChild(meta)
@@ -62,6 +59,7 @@ const output = './out.html';
   await page.evaluate(() => {
     const c = window.__c
 
+    console.log('Setting config for MathJax...')
     const CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
       jax: ['input/MathML', 'output/HTML-CSS'],
@@ -128,22 +126,43 @@ const output = './out.html';
       setTimeout(resolve, ms)
     })
   }
-
+  
+  var pageContentAfterSerialize = '';
   while (true) {
+    clearTerminal()
     var mathDone = false
     mathDone = await page.evaluate(() => {
       const c = window.__c
+      let msg = document.getElementById('MathJax_Message')
+      if(msg && msg.innerText !== ''){
+        console.log(`Progress: ${document.getElementById('MathJax_Message').innerText}`)
+      }
       return c.done
     })
     await sleep(1000)
     if (mathDone) {
+      clearTerminal()
+      console.log('Serializing document...')
+      pageContentAfterSerialize = await page.evaluate(() => {
+        var s = new XMLSerializer()
+        var d = document
+        var str = s.serializeToString(d)
+        return str;
+      })
       break
     }
   }
 
-  //   console.log("MathJax Status: " + math_status);
-  const htmlOut = await page.content()
-  await writeFile(output, htmlOut)
+  //const htmlOut = await page.content()
+
+  console.log('Saving file...')
+  await writeFile(output, pageContentAfterSerialize)
+  clearTerminal()
+  console.log(`Content saved. Open ${output} to see converted file.`)
 
   await browser.close()
-})()
+}
+
+module.exports = {
+  injectMathJax
+}
