@@ -17,9 +17,6 @@ if(process.argv.length !== 5){
   console.log('Wrong commands. Use node start input.xhtml css.css output.html')
 }else{
   let pathToInput = argv.path + '/' + argv.input
-  let pathToInputHTML = pathToInput.replace(/\xhtml/g, "html")
   console.log(`Starting injecting MathJax to ${argv.input}`)
-  //fs.copyFile(pathToInput, pathToInputHTML, function(){
-    converter.injectMathJax(pathToInput.replace(/\\/g, "/"), argv.css, argv.output)
-  //})
+  converter.injectMathJax(pathToInput.replace(/\\/g, "/"), argv.css, argv.output)
 }
