@@ -1,10 +1,14 @@
 {
+  "name": "typeset",
+  "version": "0.0.1",
   "scripts": {
-    "start": "node ./inject-matchjax.js -- @*",
+    "start": "node ./start.js -- @*",
     "test": "standard --fix"
   },
   "dependencies": {
-    "lodash": "^4.17.10",
+    "bunyan": "^1.8.12",
+    "dotenv": "^6.0.0",
+    "file-exists": "^5.0.1",
     "mathjax": "^2.7.4",
     "mathjax-node": "^2.1.1",
     "pify": "^3.0.0",

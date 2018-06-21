@@ -1,10 +1,13 @@
 const fs = require('fs')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
-
 const writeFile = pify(fs.writeFile)
+require('dotenv').config()
+const bunyan = require('bunyan')
+var level = process.env.LOG_LEVEL || 'info'
+var log = bunyan.createLogger({name: 'typeset', level: level})
 
-const injectMathJax = async (inputPath, cssPath, outputPath) => {
+const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
   function clearTerminal(){
     if(process.platform == 'darwin'){
       process.stdout.write('\033c')
@@ -17,11 +20,22 @@ const injectMathJax = async (inputPath, cssPath, outputPath) => {
   const stylemj = `${cssPath}`
   const output = `${outputPath}`
 
-  console.log('Starting puppeteer...')
+  log.info('Starting puppeteer...')
   const browser = await puppeteer.launch({args: ['--no-sandbox']})
   const page = await browser.newPage()
 
-  page.on('console', msg => console.log('PAGE LOG:', msg.text()))
+  let logs = '';
+
+  page.on('console', msg => {
+    log.info('PAGE LOG:', msg.text())
+    let logMsg = log.info('PAGE LOG:', msg.text())
+    logs += '\n' + logMsg
+  })
+  page.on('pageerror', msg => {
+    log.error('PAGE LOG ERROR:', msg.text())
+    let logMsg = log.error('PAGE LOG ERROR:', msg.text());
+    logs += '\n' + logMsg
+  })
 
   await page.goto(url)
 
@@ -55,8 +69,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath) => {
   }, stylemj)
 
   // Typeset equations
-
-  await page.evaluate(() => {
+  await page.evaluate((dirname) => {
     const c = window.__c
 
     console.log('Setting config for MathJax...')
@@ -117,9 +130,9 @@ const injectMathJax = async (inputPath, cssPath, outputPath) => {
       c.done = true
       c.status = 1
     })
-    c.mjax.src = './node_modules/mathjax/unpacked/MathJax.js'
+    c.mjax.src = `${dirname}/node_modules/mathjax/unpacked/MathJax.js`
     document.body.appendChild(c.mjax)
-  })
+  }, dirname)
 
   async function sleep (ms) {
     return new Promise((resolve) => {
@@ -142,7 +155,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath) => {
     await sleep(1000)
     if (mathDone) {
       clearTerminal()
-      console.log('Serializing document...')
+      log.info('Serializing document...')
       pageContentAfterSerialize = await page.evaluate(() => {
         var s = new XMLSerializer()
         var d = document
@@ -155,12 +168,20 @@ const injectMathJax = async (inputPath, cssPath, outputPath) => {
 
   //const htmlOut = await page.content()
 
-  console.log('Saving file...')
+  log.info('Saving file...')
   await writeFile(output, pageContentAfterSerialize)
   clearTerminal()
-  console.log(`Content saved. Open ${output} to see converted file.`)
+  log.info(`Content saved. Open ${output} to see converted file.`)
 
   await browser.close()
+
+  try {
+    let pathToLogFile = `${dirname}/logs/log-${Date.now()}.txt`
+    fs.appendFileSync(pathToLogFile, logs);
+    log.info(`Log file was created. Check ${pathToLogFile} for more informations.`);
+  } catch (err) {
+    log.error(`Log file couldn't be created.`)
+  }
 }
 
 module.exports = {
