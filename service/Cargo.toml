@@ -1,0 +1,10 @@
+[package]
+name = "bakedpdf"
+version = "0.1.0"
+authors = ["Krzysztof Mędrzycki <aiwenari@gmail.com>"]
+
+[dependencies]
+lapin-futures = "0.12.0"
+tokio = "0.1.7"
+futures-await = "0.1.1"
+structopt = "0.2.10"
