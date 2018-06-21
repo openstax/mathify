@@ -3,6 +3,7 @@
 extern crate failure;
 extern crate futures_await as futures;
 extern crate hyper;
+extern crate hyper_tls;
 extern crate lapin_futures as lapin;
 extern crate structopt;
 extern crate tempfile;

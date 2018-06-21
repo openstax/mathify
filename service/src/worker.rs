@@ -1,10 +1,12 @@
 use failure::Error;
 use futures::prelude::*;
 use hyper::{
-    client::{Client, HttpConnector},
+    client::HttpConnector,
     Body,
+    Client,
     Uri,
 };
+use hyper_tls::HttpsConnector;
 use lapin::{
     channel::BasicQosOptions,
     types::FieldTable,
@@ -28,7 +30,8 @@ pub fn worker() -> Result<(), Error> {
         ..BasicQosOptions::default()
     }))?;
 
-    let client = Client::new();
+    let connector = HttpsConnector::new(2)?;
+    let client = Client::builder().build(connector);
 
     info!("started worker");
 
@@ -49,7 +52,7 @@ pub fn worker() -> Result<(), Error> {
 }
 
 #[async]
-pub fn process(client: Client<HttpConnector, Body>, source: Uri) -> Result<(), Error> {
+pub fn process(client: Client<HttpsConnector<HttpConnector>, Body>, source: Uri) -> Result<(), Error> {
     let res = await!(client.get(source))?;
 
     if !res.status().is_success() {
