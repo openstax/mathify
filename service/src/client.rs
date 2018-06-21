@@ -13,7 +13,7 @@ pub fn send() -> io::Result<()> {
         delivery_mode: Some(2),
         ..BasicProperties::default()
     }))?;
-    println!("message delivered: {:?}", r);
+    debug!("message delivered: {:?}", r);
 
     Ok(())
 }

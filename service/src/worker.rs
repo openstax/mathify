@@ -18,7 +18,7 @@ pub fn worker() -> io::Result<()> {
 
     #[async]
     for message in await!(channel.basic_consume(&queue, "worker", Default::default(), FieldTable::new()))? {
-        println!("message: {:?}", message);
+        debug!("message: {:?}", message);
         await!(channel.basic_ack(message.delivery_tag))?;
     }
 
