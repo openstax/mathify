@@ -1,3 +1,4 @@
+use failure::Error;
 use futures::Future;
 use std::io;
 use structopt::StructOpt;
@@ -11,30 +12,31 @@ use super::{
 
 #[derive(StructOpt)]
 enum Args {
-    /// Spin up a worker to consume tasks.
+    /// Spin up a worker to consume tasks
     #[structopt(name = "worker")]
     Worker {
     },
-    /// Send a new task to be processed.
+    /// Send a new task to be processed
     #[structopt(name = "send")]
     Send {
+        /// File to bake
+        file: String,
     },
 }
 
-pub fn main() -> io::Result<()> {
+pub fn main() -> Result<(), Error> {
     let args = Args::from_args();
 
     match args {
         Worker {} => spin(worker()),
-        Send {} => spin(send()),
+        Send { file } => spin(send(file.into_bytes())),
     }
 }
 
-fn spin<F>(f: F) -> Result<F::Item, F::Error>
+fn spin<F>(f: F) -> Result<F::Item, Error>
 where
-    F: Future + ::std::marker::Send + 'static,
+    F: Future<Error = Error> + ::std::marker::Send + 'static,
     F::Item: ::std::marker::Send + 'static,
-    F::Error: From<io::Error> + ::std::marker::Send + 'static,
 {
     Runtime::new()?.block_on(f)
 }
