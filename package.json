@@ -2,7 +2,7 @@
   "name": "typeset",
   "version": "0.0.1",
   "scripts": {
-    "start": "node ./start.js -- @*",
+    "start": "node ./typeset/start.js -- @*",
     "test": "standard --fix"
   },
   "dependencies": {

@@ -166,7 +166,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
       clearTerminal()
       log.info('Serializing document...')
       pageContentAfterSerialize = await page.evaluate(() => {
-        let s = new XMLSerializer()
+        let s = new window.XMLSerializer()
         let d = document
         let str = s.serializeToString(d)
         console.log('All messages from MathJax:', JSON.stringify(window.MathJax.Message.Log()))

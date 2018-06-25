@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const yargs = require('yargs')
 const fileExists = require('file-exists')
-require('dotenv').config()
+require('dotenv-safe').config()
 const bunyan = require('bunyan')
 let level = process.env.LOG_LEVEL || 'info'
 if (!fs.existsSync(`${__dirname}/logs`)) {
