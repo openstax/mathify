@@ -25,9 +25,9 @@ let log = bunyan.createLogger({
 const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
   function clearTerminal () {
     if (process.platform === 'darwin') {
-      process.stdout.write('\\033c')
+      process.stdout.write('\x1Bc')
     } else if (process.platform === 'win32') {
-      process.stdout.write('\\033c')
+      process.stdout.write('\x1Bc')
     }
   }
 
@@ -169,6 +169,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
         let s = new XMLSerializer()
         let d = document
         let str = s.serializeToString(d)
+        console.log('All messages from MathJax:', JSON.stringify(window.MathJax.Message.Log()))
         return str
       })
       break
@@ -178,7 +179,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
   log.info('Saving file...')
   await writeFile(output, pageContentAfterSerialize)
   clearTerminal()
-  log.info(`Content saved. Open ${output} to see converted file.`)
+  log.info(`Content saved. Open ${output} to see converted file. You can also check /logs folder for details.`)
 
   await browser.close()
 }
