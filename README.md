@@ -21,6 +21,8 @@ Options:
 
 `node start typeset -i input.xhtml -c style.css -o output.html`
 
+You can also create `.env` file for bunyan managment. Use `LOG_LEVEL=info` for proper errors.
+
 MathJax will be injected to the input file and after this process content will be serialized.
 
 //Assumptions//

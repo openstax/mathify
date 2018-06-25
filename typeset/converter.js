@@ -1,18 +1,33 @@
+const path = require('path')
 const fs = require('fs')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
 const writeFile = pify(fs.writeFile)
 require('dotenv').config()
 const bunyan = require('bunyan')
-var level = process.env.LOG_LEVEL || 'info'
-var log = bunyan.createLogger({name: 'typeset', level: level})
+let level = process.env.LOG_LEVEL || 'info'
+let log = bunyan.createLogger({
+  name: 'typeset converter',
+  streams: [
+    {
+      level: level,
+      stream: process.stdout
+    },
+    {
+      type: 'rotating-file',
+      path: path.join(__dirname, `/logs/log-typeset-converter-${Date.now()}.log`),
+      period: '1d',
+      count: 30
+    }
+  ]
+})
 
 const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
-  function clearTerminal(){
-    if(process.platform == 'darwin'){
-      process.stdout.write('\033c')
-    }else if(process.platform == 'win32'){
-      process.stdout.write('\033c')
+  function clearTerminal () {
+    if (process.platform === 'darwin') {
+      process.stdout.write('\\033c')
+    } else if (process.platform === 'win32') {
+      process.stdout.write('\\033c')
     }
   }
 
@@ -24,17 +39,11 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
   const browser = await puppeteer.launch({args: ['--no-sandbox']})
   const page = await browser.newPage()
 
-  let logs = '';
-
   page.on('console', msg => {
     log.info('PAGE LOG:', msg.text())
-    let logMsg = log.info('PAGE LOG:', msg.text())
-    logs += '\n' + logMsg
   })
   page.on('pageerror', msg => {
     log.error('PAGE LOG ERROR:', msg.text())
-    let logMsg = log.error('PAGE LOG ERROR:', msg.text());
-    logs += '\n' + logMsg
   })
 
   await page.goto(url)
@@ -47,7 +56,7 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
 
     console.log('Removing non-breaking spaces...')
     let b = document.body
-    let withoutSpaces = b.innerHTML.replace(/&nbsp;/g,' ')
+    let withoutSpaces = b.innerHTML.replace(/&nbsp;/g, ' ')
     b = withoutSpaces
   })
 
@@ -139,15 +148,15 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
       setTimeout(resolve, ms)
     })
   }
-  
-  var pageContentAfterSerialize = '';
+
+  let pageContentAfterSerialize = ''
   while (true) {
     clearTerminal()
-    var mathDone = false
+    let mathDone = false
     mathDone = await page.evaluate(() => {
       const c = window.__c
       let msg = document.getElementById('MathJax_Message')
-      if(msg && msg.innerText !== ''){
+      if (msg && msg.innerText !== '') {
         console.log(`Progress: ${document.getElementById('MathJax_Message').innerText}`)
       }
       return c.done
@@ -157,16 +166,14 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
       clearTerminal()
       log.info('Serializing document...')
       pageContentAfterSerialize = await page.evaluate(() => {
-        var s = new XMLSerializer()
-        var d = document
-        var str = s.serializeToString(d)
-        return str;
+        let s = new XMLSerializer()
+        let d = document
+        let str = s.serializeToString(d)
+        return str
       })
       break
     }
   }
-
-  //const htmlOut = await page.content()
 
   log.info('Saving file...')
   await writeFile(output, pageContentAfterSerialize)
@@ -174,14 +181,6 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
   log.info(`Content saved. Open ${output} to see converted file.`)
 
   await browser.close()
-
-  try {
-    let pathToLogFile = `${dirname}/logs/log-${Date.now()}.txt`
-    fs.appendFileSync(pathToLogFile, logs);
-    log.info(`Log file was created. Check ${pathToLogFile} for more informations.`);
-  } catch (err) {
-    log.error(`Log file couldn't be created.`)
-  }
 }
 
 module.exports = {
