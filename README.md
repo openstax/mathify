@@ -5,21 +5,21 @@ Bake a PDF
 Typeset
 `cd typeset`
 
-`node start typeset --version`
+`node start --version`
 
-`node start typeset --help`
+`node start --help`
 ```
 Options:
   --version     Show version number                                    [boolean]
   --help        Show help                                              [boolean]
-  --input, -i   Path to input file.                                   [required]
-  --css, -c     Path to css file.                                     [required]
+  --xhtml, -i   Path to input file.                                   [required]
+  --css, -c     Path to css file.
   --output, -o  Path and name with extension to output file.          [required]
 ```
 
 `npm install`
 
-`node start typeset -i input.xhtml -c style.css -o output.html`
+`node start -i input.xhtml -c style.css -o output.html`
 
 You can also create `.env` file for bunyan managment. Use `LOG_LEVEL=info` for proper errors.
 

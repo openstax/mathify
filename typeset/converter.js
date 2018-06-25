@@ -3,86 +3,100 @@ const fs = require('fs')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
 const writeFile = pify(fs.writeFile)
-require('dotenv').config()
-const bunyan = require('bunyan')
-let level = process.env.LOG_LEVEL || 'info'
-let log = bunyan.createLogger({
-  name: 'typeset converter',
-  streams: [
-    {
-      level: level,
-      stream: process.stdout
-    },
-    {
-      type: 'rotating-file',
-      path: path.join(__dirname, `/logs/log-typeset-converter-${Date.now()}.log`),
-      period: '1d',
-      count: 30
-    }
-  ]
-})
 
-const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
-  function clearTerminal () {
-    if (process.platform === 'darwin') {
-      process.stdout.write('\x1Bc')
-    } else if (process.platform === 'win32') {
-      process.stdout.write('\x1Bc')
-    }
-  }
+// Helper so we can write `await sleep(1000)`
+async function sleep (ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
 
+const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) => {
   const url = `file://${inputPath}`
-  const stylemj = `${cssPath}`
   const output = `${outputPath}`
 
-  log.info('Starting puppeteer...')
-  const browser = await puppeteer.launch({args: ['--no-sandbox']})
+  log.debug('Starting puppeteer...')
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    devtools: process.env.BROWSER_DEBUGGER === 'true'
+  })
   const page = await browser.newPage()
 
   page.on('console', msg => {
-    log.info('PAGE LOG:', msg.text())
+    switch (msg.type()) {
+      case 'error':
+        // Loading an XHTML file with missing images is fine so we ignore
+        // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
+        const text = msg.text()
+        if (text !== "Failed to load resource: net::ERR_FILE_NOT_FOUND") {
+          log.error('browser-console', msg.text())
+        }
+        break
+      case 'warning':
+        log.warn('browser-console', msg.text())
+        break
+      case 'info':
+        log.info('browser-console', msg.text())
+        break
+      case 'log':
+        log.debug('browser-console', msg.text())
+        break
+      default:
+        log.error('browser-console', msg.type(), msg.text())
+        break
+    }
   })
-  page.on('pageerror', msg => {
-    log.error('PAGE LOG ERROR:', msg.text())
+  page.on('pageerror', msgText => {
+    log.fatal('browser-ERROR', msgText)
+    process.exit(111)
   })
 
-  await page.goto(url)
+  log.info(`Opening XHTML file (may take a few minutes)`)
+  log.debug(`Opening "${url}"`)
+  await page.goto(url, {
+    timeout: 10 * 60 * 1000, // Wait 10 minutes before timing out (large books take a long time to open)
+  })
+  log.debug(`Opened "${url}"`)
 
-  await page.evaluate(function () {
-    window.__c = {
-      done: false,
-      status: 0
+  await page.evaluate(() => {
+    window.__TYPESET_CONFIG = {
+      isDone: false,
+      isFailed: false,
+      elementsToRemove: []
+    }
+  })
+
+  log.debug(`Injecting CSS...`)
+  await page.evaluate(stylePath => {
+
+    if (stylePath) {
+      console.log('Setting stylesheets...')
+      const style = document.createElement('link')
+      style.rel = 'stylesheet'
+      style.href = stylePath
+      document.body.appendChild(style)
+      window.__TYPESET_CONFIG.elementsToRemove.push(style)
+    } else {
+      console.warn('No CSS file provided')
     }
 
-    console.log('Removing non-breaking spaces...')
-    let b = document.body
-    let withoutSpaces = b.innerHTML.replace(/&nbsp;/g, ' ')
-    b = withoutSpaces
-  })
-
-  // Insert stylesheet
-
-  await page.evaluate(style => {
-    const c = window.__c
-
-    console.log('Setting stylesheets...')
-    c.style = document.createElement('link')
-    c.style.rel = 'stylesheet'
-    c.style.href = style
-    document.body.appendChild(c.style)
-
     console.log('Setting metadata...')
+    if (!document.head) {
+      const head = document.createElement('head')
+      document.documentElement.insertBefore(head, document.body)
+    }
     const meta = document.createElement('meta')
     meta.setAttribute('charset', 'utf-8')
     document.head.appendChild(meta)
-  }, stylemj)
+    window.__TYPESET_CONFIG.elementsToRemove.push(meta)
+  }, cssPath)
 
   // Typeset equations
-  await page.evaluate((dirname) => {
-    const c = window.__c
+  log.info(`Injecting MathJax (and typesetting)...`)
+  const didMathJaxLoad = await page.evaluate((mathJaxPath) => {
 
     console.log('Setting config for MathJax...')
-    const CONFIG = {
+    const MATHJAX_CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
       jax: ['input/MathML', 'output/HTML-CSS'],
       showMathMenu: false,
@@ -124,62 +138,85 @@ const injectMathJax = async (inputPath, cssPath, outputPath, dirname) => {
       }
     }
 
-    function typeset () {
-      window.MathJax.Hub.Queue(function () {
-        document.querySelector('body>:first-child').style.setProperty('display', 'none')
-        c.done = true
+    // Wait until the script has loaded and then return if it was successful or not
+    return new Promise((resolve, reject) => {
+      function typeset () {
+        console.log('Begin typesetting...')
+        window.MathJax.Hub.Queue(function () {
+          document.querySelector('body>:first-child').style.setProperty('display', 'none')
+          window.__TYPESET_CONFIG.isDone = true
+        })
+        window.MathJax.Hub.setRenderer('HTML-CSS')
+        window.MathJax.Hub.Config(MATHJAX_CONFIG)
+        resolve(true)
+      };
+
+      const mjax = document.createElement('script')
+      mjax.addEventListener('load', typeset)
+      mjax.addEventListener('error', function (ev) {
+        window.__TYPESET_CONFIG.isFailed = true
+        console.error('Unable to load MathJax. NOTE: MathJax needs to be in the same directory (or a child) of the XHTML file')
+        reject()
       })
-      window.MathJax.Hub.setRenderer('HTML-CSS')
-      window.MathJax.Hub.Config(CONFIG)
-    };
-
-    c.mjax = document.createElement('script')
-    c.mjax.addEventListener('load', typeset)
-    c.mjax.addEventListener('error', function (ev) {
-      c.done = true
-      c.status = 1
+      console.log(`Attempting to inject MathJax from "${mathJaxPath}"`)
+      mjax.src = mathJaxPath
+      document.body.appendChild(mjax)
     })
-    c.mjax.src = `${dirname}/node_modules/mathjax/unpacked/MathJax.js`
-    document.body.appendChild(c.mjax)
-  }, dirname)
+  }, mathJaxPath)
 
-  async function sleep (ms) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms)
-    })
+  if (!didMathJaxLoad) {
+    log.fatal('MathJax did not load')
+    process.exit(111)
   }
+  await sleep(1000) // wait for MathJax to load
 
+
+  log.info(`Polling to see when MathJax is done typesetting...`)
   let pageContentAfterSerialize = ''
   while (true) {
-    clearTerminal()
-    let mathDone = false
-    mathDone = await page.evaluate(() => {
-      const c = window.__c
+    const {isFailed, isDone} = await page.evaluate(() => {
+      if (!window.MathJax) {
+        console.error('MathJax was not loaded')
+        return {isFailed: true}
+      }
       let msg = document.getElementById('MathJax_Message')
       if (msg && msg.innerText !== '') {
-        console.log(`Progress: ${document.getElementById('MathJax_Message').innerText}`)
+        console.info(`Progress: "${document.getElementById('MathJax_Message').innerText}"`)
       }
-      return c.done
+      return {
+        isDone: window.__TYPESET_CONFIG.isDone,
+        isFailed: window.__TYPESET_CONFIG.isFailed
+      }
     })
-    await sleep(1000)
-    if (mathDone) {
-      clearTerminal()
+    if (isFailed) {
+      log.fatal('Failed for some reason. Check logs')
+      await browser.close()
+      process.exit(111)
+    } else if (isDone) {
       log.info('Serializing document...')
       pageContentAfterSerialize = await page.evaluate(() => {
+        // Remove any elements we added
+        window.__TYPESET_CONFIG.elementsToRemove.forEach(el => el.remove())
+
         let s = new window.XMLSerializer()
-        let d = document
-        let str = s.serializeToString(d)
-        console.log('All messages from MathJax:', JSON.stringify(window.MathJax.Message.Log()))
+        let str = s.serializeToString(document)
+        if (window.MathJax && window.MathJax.Message) {
+          console.log('All messages from MathJax:', JSON.stringify(window.MathJax.Message.Log()))
+        } else {
+          console.error('Could not find window.MathJax.Message')
+        }
         return str
       })
       break
     }
+
+    // Wait a second before polling again
+    await sleep(1000)
   }
 
   log.info('Saving file...')
   await writeFile(output, pageContentAfterSerialize)
-  clearTerminal()
-  log.info(`Content saved. Open ${output} to see converted file. You can also check /logs folder for details.`)
+  log.info(`Content saved. Open "${output}" to see converted file.`)
 
   await browser.close()
 }

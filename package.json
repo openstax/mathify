@@ -3,10 +3,12 @@
   "version": "0.0.1",
   "scripts": {
     "start": "node ./typeset/start.js -- @*",
+    "start-debug": "node --inspect-brk ./typeset/start.js -- @*",
     "test": "standard --fix"
   },
   "dependencies": {
     "bunyan": "^1.8.12",
+    "bunyan-format": "^0.2.1",
     "dotenv": "^6.0.0",
     "file-exists": "^5.0.1",
     "mathjax": "^2.7.4",
