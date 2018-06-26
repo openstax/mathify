@@ -1,7 +1,32 @@
 {
+  "name": "typeset",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node ./typeset/start.js -- @*",
+    "start-debug": "node --inspect-brk ./typeset/start.js -- @*",
+    "test": "jest && standard --fix",
+    "watch": "jest --watch @*",
+    "jest": "jest @*"
+  },
   "dependencies": {
+    "bunyan": "^1.8.12",
+    "bunyan-format": "^0.2.1",
+    "dotenv": "^6.0.0",
+    "file-exists": "^5.0.1",
     "mathjax": "^2.7.4",
     "mathjax-node": "^2.1.1",
-    "puppeteer": "^1.5.0"
+    "pify": "^3.0.0",
+    "puppeteer": "^1.5.0",
+    "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.1.2",
+    "jest": "^23.2.0",
+    "standard": "^11.0.1"
+  },
+  "standard": {
+    "env": [
+      "jest"
+    ]
   }
 }
