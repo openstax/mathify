@@ -3,6 +3,10 @@ Bake a PDF
 
 
 Typeset
+
+Run tests:
+`npm test` which will run `standard --fix && npm run jest`
+
 `cd typeset`
 
 `node start --version`

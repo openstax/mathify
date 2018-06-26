@@ -1,5 +1,5 @@
-const path = require('path')
 const fs = require('fs')
+const fileExists = require('file-exists')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
 const writeFile = pify(fs.writeFile)
@@ -12,6 +12,16 @@ async function sleep (ms) {
 }
 
 const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) => {
+  // Check that the XHTML and CSS files exist
+  if (!fileExists.sync(inputPath)) {
+    log.error(`Input XHTML file not found: "${inputPath}"`)
+    process.exit(111)
+  }
+  if (cssPath && !fileExists.sync(cssPath)) {
+    log.error(`Input CSS file not found: "${cssPath}"`)
+    process.exit(111)
+  }
+
   const url = `file://${inputPath}`
   const output = `${outputPath}`
 
@@ -28,7 +38,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
         // Loading an XHTML file with missing images is fine so we ignore
         // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
         const text = msg.text()
-        if (text !== "Failed to load resource: net::ERR_FILE_NOT_FOUND") {
+        if (text !== 'Failed to load resource: net::ERR_FILE_NOT_FOUND') {
           log.error('browser-console', msg.text())
         }
         break
@@ -54,7 +64,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   log.info(`Opening XHTML file (may take a few minutes)`)
   log.debug(`Opening "${url}"`)
   await page.goto(url, {
-    timeout: 10 * 60 * 1000, // Wait 10 minutes before timing out (large books take a long time to open)
+    timeout: 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
   })
   log.debug(`Opened "${url}"`)
 
@@ -68,7 +78,6 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
 
   log.debug(`Injecting CSS...`)
   await page.evaluate(stylePath => {
-
     if (stylePath) {
       console.log('Setting stylesheets...')
       const style = document.createElement('link')
@@ -94,7 +103,6 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   // Typeset equations
   log.info(`Injecting MathJax (and typesetting)...`)
   const didMathJaxLoad = await page.evaluate((mathJaxPath) => {
-
     console.log('Setting config for MathJax...')
     const MATHJAX_CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
@@ -156,7 +164,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
       mjax.addEventListener('error', function (ev) {
         window.__TYPESET_CONFIG.isFailed = true
         console.error('Unable to load MathJax. NOTE: MathJax needs to be in the same directory (or a child) of the XHTML file')
-        reject()
+        reject(new Error('Unable to load MathJax.'))
       })
       console.log(`Attempting to inject MathJax from "${mathJaxPath}"`)
       mjax.src = mathJaxPath
@@ -169,7 +177,6 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
     process.exit(111)
   }
   await sleep(1000) // wait for MathJax to load
-
 
   log.info(`Polling to see when MathJax is done typesetting...`)
   let pageContentAfterSerialize = ''

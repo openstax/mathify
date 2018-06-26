@@ -4,7 +4,8 @@
   "scripts": {
     "start": "node ./typeset/start.js -- @*",
     "start-debug": "node --inspect-brk ./typeset/start.js -- @*",
-    "test": "standard --fix"
+    "test": "standard --fix && npm run jest",
+    "jest": "jest"
   },
   "dependencies": {
     "bunyan": "^1.8.12",
@@ -18,6 +19,11 @@
     "yargs": "^11.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^23.1.2",
+    "jest": "^23.2.0",
     "standard": "^11.0.1"
+  },
+  "standard": {
+    "env": [ "jest" ]
   }
 }
