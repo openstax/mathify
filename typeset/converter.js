@@ -11,15 +11,21 @@ async function sleep (ms) {
   })
 }
 
+// Status codes
+const STATUS_CODE = {
+  OK: 0,
+  ERROR: 111
+}
+
 const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) => {
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
     log.error(`Input XHTML file not found: "${inputPath}"`)
-    process.exit(111)
+    return STATUS_CODE.ERROR
   }
   if (cssPath && !fileExists.sync(cssPath)) {
     log.error(`Input CSS file not found: "${cssPath}"`)
-    process.exit(111)
+    return STATUS_CODE.ERROR
   }
 
   const url = `file://${inputPath}`
@@ -58,7 +64,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
   page.on('pageerror', msgText => {
     log.fatal('browser-ERROR', msgText)
-    process.exit(111)
+    return STATUS_CODE.ERROR
   })
 
   log.info(`Opening XHTML file (may take a few minutes)`)
@@ -174,7 +180,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
 
   if (!didMathJaxLoad) {
     log.fatal('MathJax did not load')
-    process.exit(111)
+    return STATUS_CODE.ERROR
   }
   await sleep(1000) // wait for MathJax to load
 
@@ -198,7 +204,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
     if (isFailed) {
       log.fatal('Failed for some reason. Check logs')
       await browser.close()
-      process.exit(111)
+      return STATUS_CODE.ERROR
     } else if (isDone) {
       log.info('Serializing document...')
       pageContentAfterSerialize = await page.evaluate(() => {
@@ -226,8 +232,11 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   log.info(`Content saved. Open "${output}" to see converted file.`)
 
   await browser.close()
+
+  return STATUS_CODE.OK
 }
 
 module.exports = {
-  injectMathJax
+  injectMathJax,
+  STATUS_CODE
 }
