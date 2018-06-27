@@ -54,7 +54,7 @@ test('Test output file for containing MathJax converted elements and do not cont
   })
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutput}`)
-  let res = await page.evaluate(() => {
+  let res = await page.evaluate(/* istanbul ignore next */() => {
     let res = {
       mathJaxClasses: 0,
       mathMLElements: 0
