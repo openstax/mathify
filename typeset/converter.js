@@ -74,7 +74,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
   log.debug(`Opened "${url}"`)
 
-  await page.evaluate(() => {
+  await page.evaluate(/* istanbul ignore next */() => {
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
@@ -83,7 +83,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
 
   log.debug(`Injecting CSS...`)
-  await page.evaluate(stylePath => {
+  await page.evaluate(/* istanbul ignore next */stylePath => {
     if (stylePath) {
       console.log('Setting stylesheets...')
       const style = document.createElement('link')
@@ -108,7 +108,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
 
   // Typeset equations
   log.info(`Injecting MathJax (and typesetting)...`)
-  const didMathJaxLoad = await page.evaluate((mathJaxPath) => {
+  const didMathJaxLoad = await page.evaluate(/* istanbul ignore next */(mathJaxPath) => {
     console.log('Setting config for MathJax...')
     const MATHJAX_CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
@@ -187,7 +187,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   log.info(`Polling to see when MathJax is done typesetting...`)
   let pageContentAfterSerialize = ''
   while (true) {
-    const {isFailed, isDone} = await page.evaluate(() => {
+    const {isFailed, isDone} = await page.evaluate(/* istanbul ignore next */() => {
       if (!window.MathJax) {
         console.error('MathJax was not loaded')
         return {isFailed: true}
@@ -207,7 +207,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
       return STATUS_CODE.ERROR
     } else if (isDone) {
       log.info('Serializing document...')
-      pageContentAfterSerialize = await page.evaluate(() => {
+      pageContentAfterSerialize = await page.evaluate(/* istanbul ignore next */() => {
         // Remove any elements we added
         window.__TYPESET_CONFIG.elementsToRemove.forEach(el => el.remove())
 
