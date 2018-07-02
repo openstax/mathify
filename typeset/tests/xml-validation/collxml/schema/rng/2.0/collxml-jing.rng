@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         xmlns:cnxml="http://cnx.rice.edu/cnxml"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="http://cnx.rice.edu/collxml">
+
+  <start>
+    <ref name="col-collection"/>
+  </start>
+
+  <include href="../../../../cnxml/schema/rng/0.7/cnxml-abstract-defs.rng">
+    <define name="cnxml-abstract-common-attributes">
+      <ref name="col-common-attributes-noclass"/>
+    </define>
+    <define name="cnxml-abstract-list-type-attribute">
+      <choice>
+        <ref name="bulleted-list-type-attribute"/>
+        <ref name="enumerated-list-type-attribute"/>
+      </choice>
+    </define>
+    <define name="cnxml-abstract-display-attribute">
+      <ref name="display-attribute"/>
+    </define>
+  </include>
+
+  <define name="cnxml-abstract-text-extras" combine="choice">
+    <ref name="mathml-math"/>
+  </define>
+
+  <include href="../../../../mdml/schema/rng/0.5/mdml-defs.rng">
+    <define name="mdml-abstract-content">
+      <ref name="cnxml-abstract-content"/>
+    </define>
+    <define name="mdml-common-attributes">
+      <ref name="col-common-attributes"/>
+    </define>
+    <define name="mdml-extended-attribution-content">
+      <cnxml:para>Contains CNXML 'linkgroup' elements that contain 'link' elements naming and referring to those to whom attribution is being given.</cnxml:para>
+      <oneOrMore>
+        <ref name="link-group"/>
+      </oneOrMore>
+    </define>
+    <define name="mdml-derived-from-attributes">
+      <cnxml:para>Makes use of the attributes from CNXML 'link' to form references to the parent works.</cnxml:para>
+      <choice>
+        <ref name="url-attribute"/>
+        <group>
+          <ref name="document-attribute"/>
+          <optional>
+            <ref name="version-attribute"/>
+          </optional>
+          <optional>
+            <ref name="repository-attribute"/>
+          </optional>
+        </group>
+      </choice>
+    </define>
+  </include>
+
+  <define name="mdml-metadata-content" combine="interleave">
+    <interleave>
+      <optional>
+        <ref name="mdml-ancillary"/>
+      </optional>
+      <optional>
+        <ref name="mdml-version-history"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <include href="../../../../cnxml/schema/rng/0.7/cnxml-defs.rng"/>
+
+  <define name="mathml-math">
+    <externalRef href="../../../../mathml/schema/rng/2.0/mathml2.rng"/>
+  </define>
+
+  <include href="collxml-defs.rng"/>
+
+</grammar>

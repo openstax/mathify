@@ -1,0 +1,90 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head itemscope="itemscope" itemtype="http://schema.org/Book">
+  <title></title>
+</head>
+
+<body itemscope="itemscope" itemtype="http://schema.org/Book">
+  <!-- This is the minimal amount of data that the RNG grammar validates against -->
+  <div data-type="metadata">
+    <h1 itemprop="name" data-type="document-title"></h1>
+    <span data-value="" data-type="cnx-archive-uri"/>
+    <span data-value="" data-type="cnx-archive-shortid"/>
+    <div class="authors">
+      <span data-type="author" id="idauthor1" itemprop="author" itemscope="itemscope" itemtype="http://schema.org/Person">
+        <a data-type="cnx-id" href="my-username" itemprop="url">my-username</a>
+      </span>
+    </div>
+    <div class="publishers">
+      <span data-type="publisher" id="idpublisher2" itemprop="publisher" itemscope="itemscope" itemtype="http://schema.org/Person">
+        <a data-type="cnx-id" href="my-username" itemprop="url">my-username</a>
+      </span>
+    </div>
+    <div class="print-style">
+      <span data-type="print-style"></span>
+    </div>
+    <div class="permissions">
+      <p class="copyright">
+        <span itemscope="itemscope" itemtype="http://schema.org/Person" itemprop="copyright-holder" data-type="copyright-holder">
+          <a itemprop="url" data-type="cnx-id" href=""></a>
+        </span>
+      </p>
+      <p class="license">
+        <a itemprop="dc:license,lrmi:useRightsURL" data-type="license" href=""></a>
+      </p>
+    </div>
+    <div itemprop="description" data-type="description" class="description">
+      <p></p>
+    </div>
+    <div itemprop="about" data-type="subject"></div>
+  </div>
+
+  <nav id="toc">
+    <ol>
+      <li><span><!-- TODO: Make some text here required --></span>
+        <ol>
+          <li cnx-archive-shortid="foo" cnx-archive-uri="foo">
+            <a href="#page123"></a>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
+  <div data-type="page" id="page123">
+    <!-- TODO: Require at least one block in here -->
+    <div data-type="metadata">
+      <h1 itemprop="name" data-type="document-title"></h1>
+      <span data-value="" data-type="cnx-archive-uri"/>
+      <span data-value="" data-type="cnx-archive-shortid"/>
+      <div class="authors">
+        <span data-type="author" id="idauthor2" itemprop="author" itemscope="itemscope" itemtype="http://schema.org/Person">
+          <a data-type="cnx-id" href="my-username" itemprop="url">my-username</a>
+        </span>
+      </div>
+      <div class="publishers">
+        <span data-type="publisher" id="idpublisher3" itemprop="publisher" itemscope="itemscope" itemtype="http://schema.org/Person">
+          <a data-type="cnx-id" href="my-username" itemprop="url">my-username</a>
+        </span>
+      </div>
+      <div class="permissions">
+        <p class="copyright">
+          <span itemscope="itemscope" itemtype="http://schema.org/Person" itemprop="copyright-holder" data-type="copyright-holder">
+            <a itemprop="url" data-type="cnx-id" href=""></a>
+          </span>
+        </p>
+        <p class="license">
+          <a itemprop="dc:license,lrmi:useRightsURL" data-type="license" href=""></a>
+        </p>
+      </div>
+      <div itemprop="description" data-type="description" class="description"></div>
+      <!-- <div itemprop="keywords" data-type="keyword"></div> -->
+      <div data-type="resources" style="display: none">
+      </div>
+    </div>
+    <div data-type="document-title"><!-- TODO: Make sure this is not blank --></div>
+  </div>
+
+
+</body>
+</html>

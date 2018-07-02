@@ -1,0 +1,12 @@
+-- SGML Open style entity catalog                                        --
+
+-- Add elements to this file: the format is                              --
+-- PUBLIC [Identifier] [path to file, full or relative to /usr/lib/sgml] --
+-- ..................................................................... --
+
+-- public identifiers override system identifiers, if both are supplied   --
+OVERRIDE YES
+
+-- BibTexML --
+PUBLIC "-//BibTeXML//DTD XML for BibTeX v1.0//EN"				/usr/share/xml/bibtexml/schema/dtd/1.0/bibteXML.dtd
+

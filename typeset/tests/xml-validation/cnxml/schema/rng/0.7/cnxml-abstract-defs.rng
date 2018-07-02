@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         ns="http://cnx.rice.edu/cnxml">
+
+  <define name="cnxml-abstract-content">
+    <oneOrMore>
+      <choice>
+        <ref name="cnxml-abstract-para"/>
+        <ref name="cnxml-abstract-para-content"/>
+      </choice>
+    </oneOrMore>
+  </define>
+
+  <define name="cnxml-abstract-para">
+    <element name="para">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-para-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-para-content">
+    <oneOrMore>
+      <choice>
+        <ref name="cnxml-abstract-inline-class"/>
+        <ref name="cnxml-abstract-block-class"/>
+      </choice>
+    </oneOrMore>
+  </define>
+
+  <define name="cnxml-abstract-block-class">
+    <choice>
+      <ref name="cnxml-abstract-quote"/>
+      <ref name="cnxml-abstract-preformat"/>
+      <ref name="cnxml-abstract-list"/>
+    </choice>
+  </define>
+
+  <define name="cnxml-abstract-text-extras">
+    <notAllowed/>
+  </define>
+
+  <define name="cnxml-abstract-inline-class">
+    <choice>
+      <ref name="cnxml-abstract-emphasis"/>
+      <ref name="cnxml-abstract-term"/>
+      <ref name="cnxml-abstract-foreign"/>
+      <ref name="cnxml-abstract-cite"/>
+      <ref name="cnxml-abstract-span"/>
+      <ref name="cnxml-abstract-sup"/>
+      <ref name="cnxml-abstract-sub"/>
+      <ref name="cnxml-abstract-code"/>
+      <ref name="cnxml-abstract-text-extras"/>
+      <text/>
+    </choice>
+  </define>
+
+  <define name="cnxml-abstract-inline-content">
+    <oneOrMore>
+      <ref name="cnxml-abstract-inline-class"/>
+    </oneOrMore>
+  </define>
+
+  <define name="cnxml-abstract-emphasis">
+    <element name="emphasis">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-term">
+    <element name="term">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-foreign">
+    <element name="foreign">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-cite">
+    <element name="cite">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-span">
+    <element name="span">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-sup">
+    <element name="sup">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-sub">
+    <element name="sub">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-code">
+    <element name="code">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-display-attribute"/>
+      <ref name="cnxml-abstract-inline-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-quote">
+    <element name="quote">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-display-attribute"/>
+      <ref name="cnxml-abstract-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-preformat">
+    <element name="preformat">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-display-attribute"/>
+      <ref name="cnxml-abstract-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-list">
+    <element name="list">
+      <ref name="cnxml-abstract-list-type-attribute"/>
+      <ref name="cnxml-abstract-display-attribute"/>
+      <ref name="cnxml-abstract-common-attributes"/>
+      <oneOrMore>
+        <ref name="cnxml-abstract-item"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-list-type-attribute">
+    <empty/>
+  </define>
+
+  <define name="cnxml-abstract-display-attribute">
+    <empty/>
+  </define>
+
+  <define name="cnxml-abstract-item">
+    <element name="item">
+      <ref name="cnxml-abstract-common-attributes"/>
+      <ref name="cnxml-abstract-para-content"/>
+    </element>
+  </define>
+
+  <define name="cnxml-abstract-common-attributes">
+    <empty/>
+  </define>
+
+</grammar>
+

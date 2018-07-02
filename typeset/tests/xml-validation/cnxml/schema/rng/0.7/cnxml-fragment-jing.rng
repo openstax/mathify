@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         ns="http://cnx.rice.edu/cnxml">
+
+  <start>
+    <choice>
+      <ref name="para"/>
+      <ref name="title"/>
+      <ref name="list"/>
+      <ref name="equation"/>
+      <ref name="exercise"/>
+      <ref name="figure"/>
+      <ref name="code"/>
+      <ref name="note"/>
+      <ref name="example"/>
+      <ref name="table"/>
+      <ref name="list"/>
+      <ref name="section"/>
+      <ref name="rule"/>
+      <ref name="definition"/>
+      <ref name="metadata"/>
+      <ref name="mdml-metadata"/>
+      <ref name="mdml-abstract"/>
+    </choice>
+  </start>
+
+  <include href="cnxml-common-jing.rng"/>
+
+</grammar>

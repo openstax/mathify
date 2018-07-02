@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         xmlns:cnxml="http://cnx.rice.edu/cnxml"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="http://cnx.rice.edu/collxml">
+
+  <define name="mdml-module-title">
+    <cnxml:para class="description">The title of the module as used in the context collection.</cnxml:para>
+    <element name="title" ns="http://cnx.rice.edu/mdml">
+      <ref name="col-core-common-attributes"/>
+      <cnxml:para class="description">If the read-only attribute from Connexions's system-info namespace is present with the value 'original-module-title', then the contents of this element are the original module title.  Otherwise, they are the title of the module as overridden in this collection context.</cnxml:para>
+      <ref name="sys-read-only-original-module-title-attribute"/>
+      <text/>
+    </element>
+  </define>
+
+  <div>
+    <cnxml:para class="description">An attribute in the Connexions system-info namespace whose value indicates why changes to the element to which it is attached will not be heeded by the Connexions repository.</cnxml:para>
+    <define name="sys-read-only-original-module-title-attribute">
+      <cnxml:list class="possible-values">
+        <cnxml:title>Possible values:</cnxml:title>
+        <cnxml:item>original-module-title</cnxml:item>
+      </cnxml:list>
+      <optional>
+        <attribute name="read-only" ns="http://cnx.rice.edu/system-info">
+          <value>original-module-title</value>
+        </attribute>
+      </optional>
+    </define>
+
+    <define name="sys-read-only-attribute">
+      <optional>
+        <attribute name="read-only" ns="http://cnx.rice.edu/system-info">
+          <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+          <data type="string">
+            <except>
+              <value type="string">original-module-title</value>
+            </except>
+          </data>
+        </attribute>
+      </optional>
+    </define>
+  </div>
+
+  <define name="col-collection">
+    <cnxml:para class="description">Document element of a CollXML document; it and its contents describe a collection of modules at a particular version.</cnxml:para>
+    <element name="collection">
+      <ref name="col-common-attributes"/>
+      <optional>
+        <ref name="col-collection-type-attribute"/>
+      </optional>
+      <interleave>
+        <optional>
+          <ref name="col-metadata"/>
+        </optional>
+        <optional>
+          <ref name="col-collection-parameters"/>
+        </optional>
+        <optional>
+          <ref name="col-featured-links"/>
+        </optional>
+        <ref name="col-content"/>
+        <optional>
+          <ref name="col-declarations"/>
+        </optional>
+        <optional>
+          <ref name="col-extensions"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="col-core-common-attributes-noclass">
+    <cnxml:para class="description">Core set of attributes common to all CollXML elements.</cnxml:para>
+    <optional>
+      <attribute name="xml:lang"/>
+    </optional>
+    <ref name="col-foreign-namespaced-attribute"/>
+  </define>
+
+  <define name="col-core-common-attributes">
+    <ref name="col-core-common-attributes-noclass"/>
+    <optional>
+      <ref name="col-class-attribute"/>
+    </optional>
+  </define>
+
+  <define name="col-common-attributes-noclass">
+    <cnxml:para class="description">The core set of common CollXML attributes with the addition of the 'read-only' attribute from the Connexions system-info namespace.</cnxml:para>
+    <ref name="col-core-common-attributes-noclass"/>
+    <ref name="sys-read-only-attribute"/>
+  </define>
+
+  <define name="col-common-attributes">
+    <cnxml:para class="description">The core set of common CollXML attributes with the addition of the 'read-only' attribute from the Connexions system-info namespace.</cnxml:para>
+    <ref name="col-core-common-attributes"/>
+    <ref name="sys-read-only-attribute"/>
+  </define>
+
+  <define name="col-foreign-namespaced-attribute">
+    <cnxml:para class="description">Any attribute except (1) one not in a namespace; (2) one in the CNXML, CollXML, or Connexions system-info namespaces; and (3) @xml:lang.</cnxml:para>
+    <zeroOrMore>
+      <attribute>
+        <anyName>
+          <except>
+            <nsName ns=""/>
+            <nsName ns="http://cnx.rice.edu/cnxml"/>
+            <nsName ns="http://cnx.rice.edu/collxml"/>
+            <nsName ns="http://cnx.rice.edu/system-info"/>
+            <name>xml:lang</name>
+          </except>
+        </anyName>
+      </attribute>
+    </zeroOrMore>
+  </define>
+
+  <define name="col-class-attribute">
+    <cnxml:para class="description">An attribute whose values authors may use to augment the semantics of the element to which it is applied.</cnxml:para>
+    <cnxml:para class="content">Content: a space-separated list of text nodes (Relax NG 'token').</cnxml:para>
+    <attribute name="class">
+      <data type="token"/>
+    </attribute>
+  </define>
+
+  <define name="col-repository-attribute">
+    <cnxml:para class="description">An attribute whose value is the URL of the respository containing this object.</cnxml:para>
+    <attribute name="repository"/>
+  </define>
+
+  <define name="col-collection-type-attribute">
+    <cnxml:para class="description">An attribute whose value that denotes the type of publication this collection is.</cnxml:para>
+    <cnxml:list class="supported-values">
+      <cnxml:title>Supported values</cnxml:title>
+      <cnxml:item>Collection</cnxml:item>
+      <cnxml:item>Course</cnxml:item>
+      <cnxml:item>Manual</cnxml:item>
+      <cnxml:item>Proceedings</cnxml:item>
+      <cnxml:item>Technical report</cnxml:item>
+      <cnxml:item>Other report</cnxml:item>
+      <cnxml:item>Textbook</cnxml:item>
+      <cnxml:item>Other book</cnxml:item>
+      <cnxml:item>Thesis (Master's)</cnxml:item>
+      <cnxml:item>Thesis (Ph.D.)</cnxml:item>
+      <cnxml:item>Journal article</cnxml:item>
+      <cnxml:item>Journal issue</cnxml:item>
+    </cnxml:list>
+    <optional>
+      <attribute name="type"/>
+    </optional>
+  </define>
+
+  <define name="col-parameter-set-attribute">
+    <cnxml:para class="description">An attribute whose value that names a set of parameters to be applied to the context element.</cnxml:para>
+    <optional>
+      <attribute name="parameter-set"/>
+    </optional>
+  </define>
+
+  <define name="col-boolean-values">
+    <cnxml:para class="description">The lexical space of values for booleans.</cnxml:para>
+    <choice cnxml:class="possible-values">
+      <value>true</value>
+      <value>false</value>
+    </choice>
+  </define>
+
+  <define name="col-metadata">
+    <cnxml:para class="description">An element that contains a block of metadata pertaining to the containing collection.</cnxml:para>
+    <element name="metadata">
+      <ref name="col-common-attributes"/>
+      <ref name="mdml-mdml-version-attribute"/>
+      <ref name="mdml-metadata-content"/>
+    </element>
+  </define>
+
+  <div>
+    <cnxml:para class="description">An element that either (1) contains a list of parameters that apply to the context element; (2) refers to a set of parameters defined elsewhere, in order to apply it to the context element; or (3) defines a set of parameters that can be applied by reference to an element elsewhere.</cnxml:para>
+    <define name="col-collection-parameters">
+      <element name="parameters">
+        <ref name="col-common-attributes"/>
+        <zeroOrMore>
+          <ref name="col-param"/>
+        </zeroOrMore>
+      </element>
+    </define>
+
+    <define name="col-parameters-uses">
+      <element name="parameters">
+        <ref name="col-common-attributes"/>
+        <ref name="col-uses-attribute"/>
+      </element>
+    </define>
+
+    <define name="col-parameters-defines">
+      <element name="parameters">
+        <ref name="col-common-attributes"/>
+        <ref name="col-defines-attribute"/>
+        <oneOrMore>
+          <ref name="col-param"/>
+        </oneOrMore>
+      </element>
+    </define>
+  </div>
+
+  <define name="col-uses-attribute">
+    <cnxml:para class="description">An attribute whose value that refers to a set of parameters defined elsewhere, in order to apply it to the context element.</cnxml:para>
+    <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+    <attribute name="uses"/>
+  </define>
+
+  <define name="col-defines-attribute">
+    <cnxml:para class="description">An attribute whose value that is the name of the set of parameters defined by the 'parameter' element to which this attribute is attached.</cnxml:para>
+    <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+    <attribute name="defines"/>
+  </define>
+
+  <define name="col-param">
+    <cnxml:para class="description">An element that a parameter with a value to be applied to the context object.</cnxml:para>
+    <element name="param">
+      <ref name="col-common-attributes"/>
+      <ref name="col-name-attribute"/>
+      <ref name="col-value-attribute"/>
+    </element>
+  </define>
+
+  <define name="col-name-attribute">
+    <cnxml:para class="description">The name of the parameter being applied.</cnxml:para>
+    <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+    <attribute name="name"/>
+  </define>
+
+  <define name="col-value-attribute">
+    <cnxml:para class="description">The value of the parameter being applied.</cnxml:para>
+    <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+    <attribute name="value"/>
+  </define>
+
+  <define name="col-content">
+    <cnxml:para class="description">An element to hold the content of the context element ('collection', 'subcollection', 'module').</cnxml:para>
+    <element name="content">
+      <ref name="col-common-attributes"/>
+      <zeroOrMore>
+        <ref name="col-collection-components"/>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <define name="col-featured-links">
+    <cnxml:para class="description">An element containing the featured links that the collection author wishes to apply to the context element ('collection', 'subcollection', 'module').</cnxml:para>
+    <element name="featured-links">
+      <ref name="col-common-attributes"/>
+      <optional>
+        <ref name="col-display-on-children"/>
+      </optional>
+      <optional>
+        <ref name="col-id-attribute"/>
+      </optional>
+      <oneOrMore>
+        <ref name="link-group"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="col-display-on-children">
+    <cnxml:para class="description">An attribute whose boolean value controls whether the featured links are rendered on child elements of the context element; the default is 'true'.</cnxml:para>
+    <attribute name="display-on-children">
+      <ref name="col-boolean-values"/>
+    </attribute>
+  </define>
+
+  <define name="col-module-featured-link-overrides">
+    <cnxml:para class="description">An element that enables collection authors to suppress the display of featured links chosen by module authors.</cnxml:para>
+    <element name="module-featured-link-overrides">
+      <ref name="col-common-attributes"/>
+      <optional>
+        <ref name="col-id-attribute"/>
+      </optional>
+      <choice>
+        <ref name="col-hide-all-links-attribute"/>
+        <oneOrMore>
+          <ref name="col-hide-link"/>
+        </oneOrMore>
+      </choice>
+    </element>
+  </define>
+
+  <define name="col-hide-link">
+    <cnxml:para class="description">An element whose @url value specifies a module featured link that the collection author wishes not to display in this context.</cnxml:para>
+    <element name="hide-link">
+      <ref name="col-common-attributes"/>
+      <attribute name="url">
+        <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+      </attribute>
+    </element>
+  </define>
+
+  <define name="col-hide-all-links-attribute">
+    <cnxml:para class="description">An attribute whose boolean value controls whether all module links in the context module are suppressed.</cnxml:para>
+    <attribute name="hide-all-links">
+      <ref name="col-boolean-values"/>
+    </attribute>
+  </define>
+
+  <define name="col-collection-components">
+    <cnxml:para class="description">The choice of elements that may occur within the CollXML 'content' element.</cnxml:para>
+    <choice>
+      <ref name="col-subcollection"/>
+      <ref name="col-module"/>
+      <ref name="col-segue"/>
+    </choice>
+  </define>
+
+  <define name="col-subcollection">
+    <cnxml:para class="description">An element that represents a subcollection in a collection.</cnxml:para>
+    <element name="subcollection">
+      <ref name="col-common-attributes"/>
+      <interleave>
+        <ref name="mdml-title"/>
+        <optional>
+          <ref name="mdml-short-title"/>
+        </optional>
+        <optional>
+          <ref name="mdml-subtitle"/>
+        </optional>
+        <optional>
+          <ref name="col-parameters-uses"/>
+        </optional>
+        <optional>
+          <ref name="col-featured-links"/>
+        </optional>
+        <ref name="col-content"/>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="col-module">
+    <cnxml:para class="description">An element that represents a module in a collection.</cnxml:para>
+    <element name="module">
+      <ref name="col-common-attributes"/>
+      <choice>
+        <ref name="url-attribute"/>
+        <group>
+          <ref name="document-attribute"/>
+          <ref name="version-attribute"/>
+        </group>
+      </choice>
+      <ref name="col-repository-attribute"/>
+      <ref name="sys-local-path-attribute"/>
+      <ref name="sys-version-at-this-collection-version-attribute"/>
+      <interleave>
+        <ref name="mdml-module-title"/>
+        <optional>
+          <ref name="mdml-short-title"/>
+        </optional>
+        <optional>
+          <ref name="mdml-subtitle"/>
+        </optional>
+        <optional>
+          <ref name="col-parameters-uses"/>
+        </optional>
+        <optional>
+          <ref name="col-featured-links"/>
+        </optional>
+        <optional>
+          <ref name="col-module-featured-link-overrides"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="sys-version-at-this-collection-version-attribute">
+    <cnxml:para class="description">An attribute that specifies the version of the module that is used in the version of the collection expressed by the containing CollXML 'collection'.  If the collection author has selected a particular version of the module to be used in this collection version, then the value will be that version number; if the collection author has chosen to use the 'latest' version of the module in this collection version, then the value will be the particular version of the module that was the latest version when this collection version was published.</cnxml:para>
+    <optional>
+      <attribute name="version-at-this-collection-version" ns="http://cnx.rice.edu/system-info">
+        <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+      </attribute>
+    </optional>
+  </define>
+
+  <define name="sys-local-path-attribute">
+    <cnxml:para class="description">An attribute whose value is a relative filesystem path to the files comprised by the module when they are included in the compressed version of the collection.</cnxml:para>
+    <optional>
+      <attribute name="local-path" ns="http://cnx.rice.edu/system-info">
+        <cnxml:para class="content">Content: text (Relax NG)</cnxml:para>
+      </attribute>
+    </optional>
+  </define>
+
+  <define name="col-id-attribute">
+    <cnxml:para class="description">An attribute of the ID type, whose value must be unique within the collection document.</cnxml:para>
+    <attribute name="id">
+      <data type="ID"/>
+    </attribute>
+  </define>
+
+  <define name="col-segue">
+    <cnxml:para class="description">An element whose contents serve as introductory or connecting matter between modules or subcollections.  Segues are an integral part of a collection and not published separately like modules.</cnxml:para>
+    <element name="segue">
+      <ref name="col-common-attributes"/>
+      <optional>
+        <ref name="col-id-attribute"/>
+      </optional>
+      <optional>
+        <ref name="col-parameter-set-attribute"/>
+      </optional>
+      <optional>
+        <ref name="col-goes-with-attribute"/>
+      </optional>
+      <optional>
+        <ref name="col-segue-type-attribute"/>
+      </optional>
+      <optional>
+        <ref name="col-parameters-uses"/>
+      </optional>
+      <ref name="cnxml-abstract-content"/>
+    </element>
+  </define>
+
+  <define name="col-goes-with-attribute">
+    <cnxml:para class="description">An attribute whose value indicates whether its segue should be rendered with the previous content object or the next content object when the output medium doesn't provide for it being rendered separately.  The default value is 'next'.</cnxml:para>
+    <attribute name="goes-with">
+      <choice>
+        <value>next</value>
+        <value>previous</value>
+      </choice>
+    </attribute>
+  </define>
+
+  <define name="col-segue-type-attribute">
+    <cnxml:para class="description">An attribute whose value clarifies the role of the segue in the context document.  The only value supported by Connexions is 'summary'.</cnxml:para>
+    <cnxml:list class="supported-values">
+      <cnxml:title>Supported values:</cnxml:title>
+      <cnxml:item>previous</cnxml:item>
+      <cnxml:item>following</cnxml:item>
+    </cnxml:list>
+    <attribute name="type">
+      <choice>
+        <value>previous</value>
+        <value>following</value>
+        <text/>
+      </choice>
+    </attribute>
+  </define>
+
+  <define name="col-declarations">
+    <cnxml:para class="description">An element to contain one or more parameter set definitions.</cnxml:para>
+    <element name="declarations">
+      <ref name="col-common-attributes"/>
+      <oneOrMore>
+        <ref name="col-parameters-defines"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="col-extensions">
+    <cnxml:para class="description">An element to contain content supplied by the collection author.  The content will not be displayed when the collection is rendered.  This element may contain only text (i.e. ampersands and less-than signs must be escaped).</cnxml:para>
+    <element name="extensions">
+      <ref name="col-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+</grammar>

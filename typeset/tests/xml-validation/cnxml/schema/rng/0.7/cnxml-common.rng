@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:cnxml="http://cnx.rice.edu/cnxml"
+         ns="http://cnx.rice.edu/cnxml">
+
+  <include href="cnxml-abstract-defs.rng">
+    <define name="cnxml-abstract-common-attributes">
+      <ref name="common-attributes-noclass"/>
+    </define>
+    <define name="cnxml-abstract-list-type-attribute">
+      <choice>
+        <ref name="bulleted-list-type-attribute"/>
+        <ref name="enumerated-list-type-attribute"/>
+      </choice>
+    </define>
+    <define name="cnxml-abstract-display-attribute">
+      <ref name="display-attribute"/>
+    </define>
+  </include>
+
+  <define name="cnxml-abstract-text-extras" combine="choice">
+    <ref name="mathml-math"/>
+  </define>
+
+  <include href="http://cnx.rice.edu/technology/mdml/schema/rng/0.5/mdml-defs.rng">
+    <define name="mdml-metadata">
+      <notAllowed/>
+    </define>
+    <define name="mdml-abstract-content">
+      <ref name="cnxml-abstract-content"/>
+    </define>
+    <define name="mdml-common-attributes">
+      <ref name="common-attributes"/>
+    </define>
+    <define name="mdml-extended-attribution-content">
+      <cnxml:para>Contains CNXML 'linkgroup' elements that contain 'link' elements naming and referring to those to whom attribution is being given.</cnxml:para>
+      <oneOrMore>
+        <ref name="link-group"/>
+      </oneOrMore>
+    </define>
+    <define name="mdml-derived-from-attributes">
+      <cnxml:para>Makes use of the attributes from CNXML 'link' to form references to the parent works.</cnxml:para>
+      <choice>
+        <ref name="url-attribute"/>
+        <group>
+          <ref name="document-attribute"/>
+          <optional>
+            <ref name="version-attribute"/>
+          </optional>
+          <optional>
+            <ref name="repository-attribute"/>
+          </optional>
+        </group>
+      </choice>
+    </define>
+  </include>
+
+  <define name="mathml-math">
+    <externalRef href="http://cnx.rice.edu/technology/mathml/schema/rng/2.0/mathml2.rng"/>
+  </define>
+
+  <include href="http://cnx.rice.edu/technology/qml/schema/rng/1.0/qml-defs.rng">
+    <define name="qml-text">
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="section"/>
+          <ref name="media"/>
+        </choice>
+      </zeroOrMore>
+    </define>
+  </include>
+
+  <include href="cnxml-defs.rng">
+    <define name="metadata-content">
+      <ref name="mdml-metadata-content"/>
+    </define>
+    <define name="content-content">
+      <choice>
+        <oneOrMore>
+          <ref name="section-content-class"/>
+        </oneOrMore>
+        <ref name="qml.problemset"/>
+      </choice>
+    </define>
+    <define name="exercise-content-extras">
+      <ref name="qml.item"/>
+    </define>
+    <define name="equation-content-extras">
+      <ref name="mathml-math"/>
+    </define>
+    <define name="bibliography">
+      <externalRef href="http://cnx.rice.edu/technology/bibtexml/schema/rng/1.0/bibtexml.rng"/>
+    </define>
+  </include>
+
+  <define name="text-extras" combine="choice">
+    <ref name="mathml-math"/>
+  </define>
+
+  <define name="metadata-extra-attributes" combine="interleave">
+    <attribute name="mdml-version">
+      <value>0.5</value>
+    </attribute>
+  </define>
+
+</grammar>

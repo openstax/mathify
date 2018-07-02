@@ -1,0 +1,16 @@
+<grammar ns="http://www.w3.org/1999/xhtml"
+         xmlns="http://relaxng.org/ns/structure/1.0">
+
+<include href="./_content.rng"/>
+<include href="./_book-structure.rng"/>
+
+<!-- <head itemscope="itemscope" itemtype="http://schema.org/Book"> -->
+<define name="head.attlist" combine="interleave">
+  <ref name="Structure.Book.Head.attlist"/>
+</define>
+
+<define name="body">
+  <ref name="Structure.Book.Body"/>
+</define>
+
+</grammar>

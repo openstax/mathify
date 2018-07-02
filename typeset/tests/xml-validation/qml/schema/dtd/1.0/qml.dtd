@@ -1,0 +1,23 @@
+<!-- DTD for the Questions Markup Language (QML)                  -->
+<!-- version 1.0                                                  -->
+<!--                                                              -->
+<!-- This entity may be identified by the following PUBLIC        -->
+<!-- and SYSTEM identifiers                                       -->
+<!--                                                              -->
+<!-- PUBLIC:  -//CNX//DTD QML 1.0//EN                             -->
+<!-- SYSTEM:  http://cnx.rice.edu/technology/qml/schema/dtd/1.0/qml.dtd  -->
+<!--                                                              -->
+<!-- CVS Version: $Revision: 8254 $                                -->
+<!-- Modified: $Date: 2005-06-30 14:21:34 -0500 (Thu, 30 Jun 2005) $                       -->
+<!-- Maintained by the Learning Assessment Team                   -->
+<!-- email: asses@cnx.rice.edu                                    -->
+<!--                                                              -->
+
+<!-- Bring in the qualified names -->
+<!ENTITY % qml-qname.mod SYSTEM "qml1-qname-1.mod" >
+%qml-qname.mod;
+
+<!ENTITY % NS.decl.attrib "%QML.xmlns.extra.attrib;">
+
+<!ENTITY % qml.mod SYSTEM "qml1.mod" >
+%qml.mod;

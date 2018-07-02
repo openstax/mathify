@@ -1,0 +1,227 @@
+<!--
+  - File: $Id: bibteXML-ext-modular.dtd, 2004-08-04
+  -
+  - This DTD expresses XML markup similar to the BibTeX language
+  - specified for LaTeX, or actually its content model.
+  - For documentation on BibTeX, see
+  -   http://www.ctan.org/tex-archive/biblio/bibtex/distribs/doc/
+  -
+  - Suggested invocation:
+  - 
+  -   <?xml version="1.0" encoding="UTF-8"?>
+  -   <!DOCTYPE bibtex:file PUBLIC
+  -       "-//BibTeXML//DTD XML for BibTeX (extended) v1.0//EN"
+  -       "bibteXML-ext.dtd" >
+  -   <bibtex:file xmlns:bibtex="http://bibtexml.sf.net/">
+  -   ...
+  -   </bibtex:file>
+  - 
+  - Available from  http://bibtexml.sf.net/
+  -
+  - This code originally developed by
+  - Vidar Bronken Gundersen
+  - Zeger W. Hendrikse
+  -
+  - Modularized by: Adan Galvan
+  - This program is free software; you can redistribute it and/or
+  - modify it under the terms of the GNU General Public License.
+  - See  http://www.gnu.org/copyleft/gpl.html
+  -
+-->
+
+<!-- Section A: XML Namespace Framework :::::::::::::::::::: -->
+
+<!ENTITY % NS.prefixed     "INCLUDE" > 
+<!ENTITY % BibTeXML.prefixed "%NS.prefixed;" >
+
+
+<!ENTITY % BibTeXML.xmlns    "http://bibtexml.sf.net/" >
+<!ENTITY % BibTeXML.prefix   "bib" >
+<![%BibTeXML.prefixed;[
+<!ENTITY % BibTeXML.xmlns.extra.attrib  "" >
+]]>
+<!ENTITY % BibTeXML.xmlns.extra.attrib 
+     "" >
+
+<![%BibTeXML.prefixed;[
+<!ENTITY % BibTeXML.pfx  "%BibTeXML.prefix;:" >
+<!ENTITY % BibTeXML.xmlns.attrib
+     "xmlns:%BibTeXML.prefix;  CDATA   #FIXED '%BibTeXML.xmlns;'
+      %BibTeXML.xmlns.extra.attrib;"
+>
+]]>
+<!ENTITY % BibTeXML.pfx  "" >
+<!ENTITY % BibTeXML.xmlns.attrib
+     "xmlns        CDATA           #FIXED '%BibTeXML.xmlns;'
+      %BibTeXML.xmlns.extra.attrib;"
+>
+
+<![%NS.prefixed;[
+<!ENTITY % XHTML.xmlns.extra.attrib 
+     "%BibTeXML.xmlns.attrib;" >
+]]>
+<!ENTITY % XHTML.xmlns.extra.attrib
+     "%BibTeXML.xmlns.attrib;"
+>
+
+
+<!-- ..................................................................... -->
+<!-- Popular fields
+  - 
+  - BibTeX is extremely popular, and many people have used it to store
+  - information. Here is a list of some of the more common fields:
+  - 
+  - [affiliation]  The authors affiliation. 
+  - [abstract]  An abstract of the work. 
+  - [contents]  A Table of Contents 
+  - [copyright]  Copyright information. 
+  - [ISBN]  The International Standard Book Number. 
+  - [ISSN]  The International Standard Serial Number. 
+  -         Used to identify a journal. 
+  - [keywords]  Key words used for searching or possibly for annotation. 
+  - [language]  The language the document is in. 
+  - [location]  A location associated with the entry,
+  -             such as the city in which a conference took place.
+  - [LCCN]  The Library of Congress Call Number.
+  -         I've also seen this as lib-congress. 
+  - [mrnumber]  The Mathematical Reviews number. 
+  - [price]  The price of the document. 
+  - [size]  The physical dimensions of a work. 
+  - [URL] The WWW Universal Resource Locator that points to the item being
+  -       referenced. This often is used for technical reports to point to the
+  -       ftp site where the postscript source of the report is located.
+  - 
+  - When using BibTeX with LaTeX you need
+  - BibTeX style files to print these data.
+  -
+  - Ref: www.ecst.csuchico.edu/~jacobsd/bib/formats/bibtex.html
+-->
+
+
+<!-- Section A.  This section declares parameter entities used to provide
+  -     namespace-qualified names for all element types.
+-->
+
+
+<!ENTITY %  BibTeXML.abstract.qname         "%BibTeXML.pfx;abstract">
+<!ENTITY %  BibTeXML.affiliation.qname      "%BibTeXML.pfx;affiliation">
+<!ENTITY %  BibTeXML.contents.qname         "%BibTeXML.pfx;contents">
+<!ENTITY %  BibTeXML.copyright.qname        "%BibTeXML.pfx;copyright">
+<!ENTITY %  BibTeXML.isbn.qname             "%BibTeXML.pfx;isbn">
+<!ENTITY %  BibTeXML.issn.qname             "%BibTeXML.pfx;issn">
+<!ENTITY %  BibTeXML.language.qname         "%BibTeXML.pfx;language">
+<!ENTITY %  BibTeXML.lccn.qname             "%BibTeXML.pfx;lccn">
+<!ENTITY %  BibTeXML.location.qname         "%BibTeXML.pfx;location">
+<!ENTITY %  BibTeXML.mrnumber.qname         "%BibTeXML.pfx;mrnumber">
+<!ENTITY %  BibTeXML.price.qname            "%BibTeXML.pfx;price">
+<!ENTITY %  BibTeXML.size.qname             "%BibTeXML.pfx;size">
+<!ENTITY %  BibTeXML.url.qname              "%BibTeXML.pfx;url">
+<!ENTITY %  BibTeXML.category.qname         "%BibTeXML.pfx;category" >
+<!ENTITY %  BibTeXML.doi.qname              "%BibTeXML.pfx;doi">
+
+<!ELEMENT   %BibTeXML.abstract.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.affiliation.qname;     (#PCDATA)>
+<!ELEMENT   %BibTeXML.contents.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.copyright.qname;       (#PCDATA)>
+<!ELEMENT   %BibTeXML.isbn.qname;            (#PCDATA)>
+<!ELEMENT   %BibTeXML.issn.qname;            (#PCDATA)>
+<!ELEMENT   %BibTeXML.language.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.lccn.qname;            (#PCDATA)>
+<!ELEMENT   %BibTeXML.location.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.mrnumber.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.price.qname;           (#PCDATA)>
+<!ELEMENT   %BibTeXML.size.qname;            (#PCDATA)>
+<!ELEMENT   %BibTeXML.url.qname;             (#PCDATA)>
+<!ELEMENT   %BibTeXML.category.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.doi.qname;             (#PCDATA)>
+
+
+
+
+
+<!-- Section B: Ignore author template to add in the authorlist and editorlist functionality -->
+
+<!ENTITY % BibTeXML.author.element "IGNORE">
+<!ENTITY % BibTeXML.editor.element "IGNORE"> 
+
+
+<!ENTITY % BibTeXML.author.qname            "%BibTeXML.pfx;author">
+<!ENTITY % BibTeXML.editor.qname            "%BibTeXML.pfx;editor">
+<!ENTITY % BibTeXML.authorlist.qname        "%BibTeXML.pfx;authorlist">
+<!ENTITY % BibTeXML.editorlist.qname        "%BibTeXML.pfx;editorlist">
+<!ENTITY % BibTeXML.person.qname            "%BibTeXML.pfx;person">
+<!ENTITY % BibTeXML.initials.qname          "%BibTeXML.pfx;initials">
+<!ENTITY % BibTeXML.first.qname             "%BibTeXML.pfx;first">
+<!ENTITY % BibTeXML.last.qname              "%BibTeXML.pfx;last">
+<!ENTITY % BibTeXML.middle.qname            "%BibTeXML.pfx;middle">
+<!ENTITY % BibTeXML.lineage.qname           "%BibTeXML.pfx;lineage">
+<!ENTITY % BibTeXML.prelast.qname           "%BibTeXML.pfx;prelast">
+
+
+<!ELEMENT   %BibTeXML.first.qname;           (#PCDATA)>
+<!ELEMENT   %BibTeXML.initials.qname;        (#PCDATA)>
+<!ELEMENT   %BibTeXML.last.qname;            (#PCDATA)>
+<!ELEMENT   %BibTeXML.middle.qname;          (#PCDATA)>
+<!ELEMENT   %BibTeXML.prelast.qname;         (#PCDATA)>
+<!ELEMENT   %BibTeXML.lineage.qname;         (#PCDATA)>
+
+<!-- first, middle and last name should be obvious
+  - preLast is for names like Thomas *de* Burghes,
+  - lineage is used for "Jr" in names like "James T. Kirk, Jr."
+  -->
+
+
+<!ELEMENT   %BibTeXML.person.qname; ((%BibTeXML.initials.qname;|(%BibTeXML.first.qname;,(%BibTeXML.middle.qname;)?)), (%BibTeXML.prelast.qname;)? ,%BibTeXML.last.qname;,(%BibTeXML.lineage.qname;)?)> 
+
+<!ATTLIST   %BibTeXML.person.qname;  email    CDATA  #IMPLIED
+                           url      CDATA  #IMPLIED
+>
+
+<!ELEMENT %BibTeXML.authorlist.qname; (%BibTeXML.person.qname;)+> 
+<!ELEMENT %BibTeXML.editorlist.qname; (%BibTeXML.person.qname;)+> 
+
+<!ELEMENT %BibTeXML.author.qname;  (#PCDATA | %BibTeXML.authorlist.qname;)*>
+<!ELEMENT %BibTeXML.editor.qname;  (#PCDATA | %BibTeXML.editorlist.qname;)*> 
+
+
+<!--======================================================== -->
+
+<!ENTITY % BibTeXML.title.element "IGNORE">
+
+<!ENTITY % BibTeXML.title.qname               "%BibTeXML.pfx;title">
+<!ENTITY % BibTeXML.titlelist.qname           "%BibTeXML.pfx;titlelist">
+<!ENTITY % BibTeXML.subtitle.qname            "%BibTeXML.pfx;subtitle"> 
+
+
+<!ELEMENT   %BibTeXML.title.qname;         (#PCDATA| %BibTeXML.titlelist.qname;)*>
+<!ELEMENT   %BibTeXML.subtitle.qname;      (#PCDATA)>
+<!ELEMENT   %BibTeXML.titlelist.qname;     (%BibTeXML.title.qname;, (%BibTeXML.subtitle.qname;)?)>
+
+
+<!ENTITY % BibTeXML.keywords.qname           "%BibTeXML.pfx;keywords">
+<!ENTITY % BibTeXML.keyword.qname           "%BibTeXML.pfx;keyword">
+
+<!ENTITY % BibTeXML.keywords.element "IGNORE">
+<!ELEMENT   %BibTeXML.keyword.qname;    (#PCDATA) >
+<!ELEMENT   %BibTeXML.keywords.qname;  ((%BibTeXML.keyword.qname;)+) >
+
+
+<!-- popular user fields -->
+<!ENTITY % user.fields
+"(%BibTeXML.abstract.qname;?,%BibTeXML.affiliation.qname;?,
+%BibTeXML.contents.qname;?, %BibTeXML.copyright.qname;?,
+(%BibTeXML.isbn.qname; |%BibTeXML.issn.qname;)?,%BibTeXML.doi.qname;?, %BibTeXML.keywords.qname;? , %BibTeXML.language.qname;?, %BibTeXML.lccn.qname;?,%BibTeXML.location.qname;?,%BibTeXML.mrnumber.qname;?, %BibTeXML.price.qname;?, %BibTeXML.size.qname;?, %BibTeXML.url.qname;?, %BibTeXML.category.qname;?)">
+
+<!ENTITY % BibTeXML.common.standard.fields   ", key.qname?,
+crossref.qname?, %user.fields;"> 
+
+<!-- ..................................................................... -->
+<!-- reuse the strict BibTeXML DTD -->
+<!ENTITY % BibTeXML-strict PUBLIC
+    "-//BibTeXML//DTD XML for BibTeX v1.0//EN"
+    "bibteXML.dtd">
+%BibTeXML-strict;
+
+
+<!-- ..................................................................... -->
+<!-- End of bibtex dtd -->

@@ -1,0 +1,171 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <!-- This is the minimal amount of data that the RNG grammar validates against -->
+
+  <figure id="id123">
+  </figure>
+
+  <figure data-orient="vertical">
+    <!-- TODO: This element should not be allowed here -->
+    <!-- <div data-type="chapter"></div> -->
+
+    <figcaption></figcaption>
+  </figure>
+
+  <div data-type="list" data-list-type="bulleted" data-bullet-style="bullet">
+    <div data-type="item"></div>
+  </div>
+
+  <!-- This one should fail -->
+  <!-- <div data-type="exercise">
+  </div> -->
+
+  <div data-type="note">
+    <div data-type="title" class="askjdh" id="id1234">Optional title</div>
+  </div>
+
+  <div class="note economics bringhome" data-type="note" id="auto_2600d768-e2cf-4eb7-a936-db24ea0a10a8_fs-idp55190864">
+    <div class="title" data-type="title" id="auto_2600d768-e2cf-4eb7-a936-db24ea0a10a8_16392">asdas</div>
+  </div>
+
+  <div data-list-type="enumerated" data-number-style="lower-alpha" data-type="list" id="auto_11300f3f-3e5d-45ce-bda7-40f486299062_fs-idm51555792">
+    <div data-type="item"></div>
+  </div>
+
+
+  <div data-type="example">
+    <div data-type="exercise" data-print-placement="here">
+      <div data-type="problem">
+        <p>What is 2+2?</p>
+      </div>
+      <div data-type="solution" data-print-placement="here">
+        4
+      </div>
+    </div>
+  </div>
+
+
+  <p><span data-type="newline"><br/></span></p>
+
+  <p><cite><span data-type="cite-title"></span></cite></p>
+
+  <table data-frame="foo" data-colsep="1" data-rowsep="0">
+    <tr>
+      <th data-valign="top">x</th>
+      <th data-valign="middle">x</th>
+    </tr>
+    <tr>
+      <td data-valign="top">x</td>
+      <td data-valign="middle">x</td>
+    </tr>
+  </table>
+
+  <!-- For microbiology: -->
+
+  <!-- a footnote link -->
+  <p>
+    <sup data-type="footnote-number" id="footnote-ref1">
+      <a data-type="footnote-link" href="#footnote1">1</a>
+    </sup>
+  </p>
+
+  <ol data-mark-suffix=")">
+    <li>hi</li>
+  </ol>
+
+  <section data-depth="1" data-label="hi" data-element-type="H1"></section>
+
+
+
+  <div data-type="media" id="hi1" data-alt="" data-longdesc="">
+    <iframe></iframe>
+  </div>
+
+
+  <!-- Calculus -->
+
+  <div data-type="list-with-title" id="list-with-title123">
+    <div data-type="title">My Title <em>with markup</em></div>
+    <ul><li></li></ul>
+  </div>
+
+  <!-- Physics -->
+  <div
+      data-type="alternates"
+      id="Phet_module_3.4"
+      data-alt="">
+
+    <a data-type="image-with-thumbnail" href="projectile-motion_en.jar">
+      <img
+        src="PhET_Icon.png"
+        data-media-type="image/png"
+        alt=""
+        data-print="false"
+        width="450"
+        />
+    </a>
+    <img
+        data-media-type="image/png"
+        data-print="true"
+        src="PhET_Icon.png"
+        alt=""
+        width="450"
+      />
+
+  </div>
+
+  <!-- Precalculus -->
+  <p>
+    <span data-type="list" data-list-type="bulleted" data-mark-suffix="." data-item-sep=";">
+      <span data-type="item">a</span>
+    </span>
+
+    <span data-type="term">term1</span>
+    <span data-type="foreign">foreign1</span>
+  </p>
+
+  <!-- TODO: Make sure this element can only occur once at the end of a Page. It is currently here so that the CNXML->HTML conversion validates -->
+  <div
+      data-type="footnote-refs"
+    ><h3
+        data-type="footnote-refs-title"
+      >Footnotes</h3
+    ><ul
+        data-list-type="bulleted"
+        data-bullet-style="none"
+      ><li
+          data-type="footnote-ref"
+          id="footnote1"
+        ><a
+            data-type="footnote-ref-link"
+            href="#footnote-ref1"
+          >1</a
+        > <span
+            data-type="footnote-ref-content"
+          >J. Hulcr et al. &#x201C;A Jungle in There: Bacteria in Belly Buttons are Highly Diverse, but Predictable.&#x201D; <em
+            >PLoS ONE</em
+          > 7 no. 11 (2012): e47712. doi:10.1371/journal.pone.0047712.</span
+        ></li
+      ></ul
+    ></div
+  >
+
+  <div data-type="glossary">
+    <h3 data-type="glossary-title">Glossary</h3>
+    <dl id="fs-id1167836525060">
+      <dt>coefficient</dt>
+      <dd id="fs-id1167836525065">The coefficient of a term is the constant that multiplies the variable in a term.</dd>
+    </dl>
+    <dl>
+      <dt>coefficient</dt>
+      <dd>The coefficient of a term is the constant that multiplies the variable in a term.</dd>
+    </dl>
+  </div>
+
+</body>
+</html>

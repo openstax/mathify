@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <!-- SYSTEM Rewrite rules to access local copies -->
+  <rewriteSystem systemIdStartString="http://cnx.rice.edu/technology/cnxml/schema/dtd/0.7" rewritePrefix="schema/dtd/0.7"/>
+  <rewriteSystem systemIdStartString="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7" rewritePrefix="schema/rng/0.7"/>
+  <rewriteSystem systemIdStartString="http://cnx.rice.edu/technology/cnxml/schema/xsd/0.7" rewritePrefix="schema/xsd/0.7"/>
+  <rewriteUri uriStartString="http://cnx.rice.edu/technology/cnxml/schema/dtd/0.7" rewritePrefix="schema/dtd/0.7"/>
+  <rewriteUri uriStartString="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7" rewritePrefix="schema/rng/0.7"/>
+  <rewriteUri uriStartString="http://cnx.rice.edu/technology/cnxml/schema/xsd/0.7" rewritePrefix="schema/xsd/0.7"/>
+
+</catalog>

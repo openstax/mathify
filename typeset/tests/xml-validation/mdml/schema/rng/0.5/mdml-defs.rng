@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         xmlns:cnxml="http://cnx.rice.edu/cnxml"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="http://cnx.rice.edu/mdml"
+>
+
+
+  <define name="mdml-common-attributes">
+    <empty/>
+  </define>
+
+  <define name="mdml-metadata-content">
+    <interleave>
+      <ref name="mdml-content-id"/>
+      <ref name="mdml-repository"/>
+      <optional>
+        <ref name="mdml-content-url"/>
+      </optional>
+      <ref name="mdml-title"/>
+      <optional>
+        <ref name="mdml-short-title"/>
+      </optional>
+      <optional>
+        <ref name="mdml-subtitle"/>
+      </optional>
+      <ref name="mdml-version"/>
+      <ref name="mdml-created"/>
+      <ref name="mdml-revised"/>
+      <ref name="mdml-actors"/>
+      <ref name="mdml-roles"/>
+      <ref name="mdml-license"/>
+      <optional>
+        <ref name="mdml-extended-attribution"/>
+      </optional>
+      <zeroOrMore>
+        <ref name="mdml-derived-from"/>
+      </zeroOrMore>
+      <optional>
+        <ref name="mdml-keywordlist"/>
+      </optional>
+      <optional>
+        <ref name="mdml-subjectlist"/>
+      </optional>
+      <optional>
+        <ref name="mdml-education-levellist"/>
+      </optional>
+      <optional>
+        <ref name="mdml-abstract"/>
+      </optional>
+      <ref name="mdml-language"/>
+      <optional>
+        <ref name="mdml-objectives"/>
+      </optional>
+      <optional>
+        <ref name="mdml-col-homepage"/>
+      </optional>
+      <optional>
+        <ref name="mdml-institution"/>
+      </optional>
+      <optional>
+        <ref name="mdml-course-code"/>
+      </optional>
+      <optional>
+        <ref name="mdml-instructor"/>
+      </optional>
+    </interleave>
+  </define>
+
+  <define name="mdml-metadata">
+    <element name="metadata">
+      <ref name="mdml-mdml-version-attribute"/>
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-metadata-content"/>
+    </element>
+  </define>
+
+  <define name="mdml-mdml-version-attribute">
+    <attribute name="mdml-version">
+      <value>0.5</value>
+    </attribute>
+  </define>
+
+  <define name="mdml-content-id">
+    <element name="content-id">
+      <ref name="mdml-common-attributes"/>
+      <data type="NMTOKEN"/>
+    </element>
+  </define>
+
+  <define name="mdml-repository">
+    <element name="repository">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-content-url">
+    <element name="content-url">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-title">
+    <element name="title">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-version">
+    <element name="version">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-short-title">
+    <element name="short-title">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-subtitle">
+    <element name="subtitle">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-created">
+    <element name="created">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-revised">
+    <element name="revised">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-homepage">
+    <element name="homepage">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-actors">
+    <element name="actors">
+      <ref name="mdml-common-attributes"/>
+      <oneOrMore>
+        <choice>
+          <ref name="mdml-person"/>
+          <ref name="mdml-organization"/>
+        </choice>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-person">
+    <element name="person">
+      <ref name="mdml-common-attributes"/>
+      <optional>
+        <ref name="mdml-userid-attribute"/>
+      </optional>
+      <interleave>
+        <optional>
+          <ref name="mdml-honorific"/>
+        </optional>
+        <ref name="mdml-firstname"/>
+        <optional>
+          <ref name="mdml-othername"/>
+        </optional>
+        <ref name="mdml-surname"/>
+        <optional>
+          <ref name="mdml-lineage"/>
+        </optional>
+        <ref name="mdml-fullname"/>
+        <optional>
+          <ref name="mdml-email"/>
+        </optional>
+        <optional>
+          <ref name="mdml-homepage"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="mdml-organization">
+    <element name="organization">
+      <ref name="mdml-common-attributes"/>
+      <optional>
+        <ref name="mdml-userid-attribute"/>
+      </optional>
+      <interleave>
+        <ref name="mdml-fullname"/>
+        <ref name="mdml-shortname"/>
+        <optional>
+          <ref name="mdml-email"/>
+        </optional>
+        <optional>
+          <ref name="mdml-homepage"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="mdml-userid-attribute">
+    <attribute name="userid"/>
+  </define>
+
+  <define name="mdml-shortname">
+    <element name="shortname">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-roles">
+    <element name="roles">
+      <ref name="mdml-common-attributes"/>
+      <oneOrMore>
+        <ref name="mdml-role"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-role">
+    <element name="role">
+      <ref name="mdml-common-attributes"/>
+      <attribute name="type"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-honorific">
+    <element name="honorific">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-firstname">
+    <element name="firstname">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-othername">
+    <element name="othername">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-surname">
+    <element name="surname">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-lineage">
+    <element name="lineage">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-fullname">
+    <element name="fullname">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-email">
+    <element name="email">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-license">
+    <element name="license">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-url"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-extended-attribution">
+    <cnxml:para>An element enabling authors to give attribution for roles not supported by the Rhaptos/Connexions roles system (roles like 'funder', 'sponsor').</cnxml:para>
+    <element name="extended-attribution" ns="http://cnx.rice.edu/mdml">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-extended-attribution-content"/>
+    </element>
+  </define>
+
+  <define name="mdml-extended-attribution-content">
+    <notAllowed/>
+  </define>
+
+  <define name="mdml-keywordlist">
+    <element name="keywordlist">
+      <ref name="mdml-common-attributes"/>
+      <oneOrMore>
+        <ref name="mdml-keyword"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-keyword">
+    <element name="keyword">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-subjectlist">
+    <element name="subjectlist">
+      <ref name="mdml-common-attributes"/>
+      <oneOrMore>
+        <ref name="mdml-subject"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-subject">
+    <element name="subject">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-source-attribute"/>
+      <ref name="mdml-key-attribute"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-education-levellist">
+    <element name="education-levellist">
+      <ref name="mdml-common-attributes"/>
+      <oneOrMore>
+        <ref name="mdml-education-level"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-education-level">
+    <element name="education-level">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-source-attribute"/>
+      <ref name="mdml-key-attribute"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-source-attribute">
+    <optional>
+      <attribute name="source"/>
+    </optional>
+  </define>
+
+  <define name="mdml-key-attribute">
+    <optional>
+      <attribute name="key"/>
+    </optional>
+  </define>
+
+  <define name="mdml-col-homepage">
+    <element name="homepage">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-institution">
+    <element name="institution">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-course-code">
+    <element name="course-code">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-instructor">
+    <element name="instructor">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-derived-from">
+    <cnxml:para>An element to link to works from which the context work was derived.</cnxml:para>
+    <element name="derived-from" ns="http://cnx.rice.edu/mdml">
+      <ref name="mdml-common-attributes"/>
+      <optional>
+        <cnxml:para>An attribute in the Connexions system-info namespace to express whether the 'derived-from' element to which it is attached contains the full chain of content parentage or just the immediate parents of the context document.  Supported values are:
+          <cnxml:list>
+            <cnxml:item>entire-chain</cnxml:item>
+            <cnxml:item>first-ancestor-only</cnxml:item>
+          </cnxml:list>
+        </cnxml:para>
+        <attribute name="implementation" ns="http://cnx.rice.edu/system-info"/>
+      </optional>
+      <cnxml:para>Child 'derived-from' elements denote more remote ancestors of the document.</cnxml:para>
+      <ref name="mdml-derived-from-attributes"/>
+      <zeroOrMore>
+        <ref name="mdml-derived-from"/>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <define name="mdml-derived-from-attributes">
+    <notAllowed/>
+  </define>
+
+  <define name="repository-attribute">
+    <cnxml:para>An attribute whose value is the URL of a repository containing the context object.</cnxml:para>
+    <attribute name="repository"/>
+  </define>
+
+  <define name="mdml-url">
+    <attribute name="url"/>
+  </define>
+
+  <define name="mdml-version-history">
+    <element name="version-history">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-url"/>
+    </element>
+  </define>
+
+  <define name="mdml-ancillary">
+    <element name="ancillary">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-url"/>
+    </element>
+  </define>
+
+  <define name="mdml-abstract">
+    <element name="abstract">
+      <ref name="mdml-common-attributes"/>
+      <ref name="mdml-abstract-content"/>
+    </element>
+  </define>
+
+  <define name="mdml-abstract-content">
+    <text/>
+  </define>
+  
+  <define name="mdml-language">
+    <element name="language">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+  <define name="mdml-objectives">
+    <element name="objectives">
+      <ref name="mdml-common-attributes"/>
+      <text/>
+    </element>
+  </define>
+
+</grammar>

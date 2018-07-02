@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="http://cnx.rice.edu/qml/1.0"
+>
+
+  <define name="qml-text">
+    <text/>
+  </define>
+
+  <define name="qml-id-attribute">
+    <attribute name="id">
+      <data type="ID"/>
+    </attribute>
+  </define>
+
+  <define name="qml-common-attributes">
+    <empty/>
+  </define>
+
+  <define name="qml.problemset">
+    <element name="problemset">
+      <ref name="qml-common-attributes"/>
+      <optional>
+        <ref name="qml-id-attribute"/>
+      </optional>
+      <oneOrMore>
+        <ref name="qml.item"/>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="qml.item">
+    <element name="item">
+      <ref name="qml-id-attribute"/>
+      <attribute name="type">
+        <choice>
+          <value>single-response</value>
+          <value>multiple-response</value>
+          <value>text-response</value>
+          <value>ordered-response</value>
+        </choice>
+      </attribute>
+      <ref name="qml-common-attributes"/>
+      <ref name="qml.question"/>
+      <zeroOrMore>
+        <ref name="qml.resource"/>
+      </zeroOrMore>
+      <zeroOrMore>
+        <ref name="qml.answer"/>
+      </zeroOrMore>
+      <zeroOrMore>
+        <ref name="qml.hint"/>
+      </zeroOrMore>
+      <optional>
+        <ref name="qml.feedback"/>
+      </optional>
+      <optional>
+        <ref name="qml.key"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="qml.question">
+    <element name="question">
+      <ref name="qml-common-attributes"/>
+      <ref name="qml-text"/>
+    </element>
+  </define>
+
+  <define name="qml.resource">
+    <element name="resource">
+      <attribute name="uri"/>
+      <optional>
+        <ref name="qml-id-attribute"/>
+      </optional>
+      <ref name="qml-common-attributes"/>
+    </element>
+  </define>
+
+  <define name="qml.answer">
+    <element name="answer">
+      <ref name="qml-common-attributes"/>
+      <optional>
+        <ref name="qml-id-attribute"/>
+      </optional>
+      <optional>
+        <ref name="qml.response"/>
+      </optional>
+      <optional>
+        <ref name="qml.feedback"/>
+        <optional>
+          <ref name="qml.feedback"/>
+        </optional>
+      </optional>
+    </element>
+  </define>
+
+  <define name="qml.response">
+    <element name="response">
+      <ref name="qml-common-attributes"/>
+      <ref name="qml-text"/>
+    </element>
+  </define>
+
+  <define name="qml.feedback">
+    <element name="feedback">
+      <ref name="qml-common-attributes"/>
+      <optional>
+        <attribute name="correct">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <ref name="qml-text"/>
+    </element>
+  </define>
+
+  <define name="qml.hint">
+    <element name="hint">
+      <ref name="qml-common-attributes"/>
+      <ref name="qml-text"/>
+    </element>
+  </define>
+
+  <define name="qml.key">
+    <element name="key">
+      <ref name="qml-common-attributes"/>
+      <optional>
+        <attribute name="answer">
+          <text/>
+        </attribute>
+      </optional>
+      <ref name="qml-text"/>
+    </element>
+  </define>
+
+</grammar>

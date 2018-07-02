@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  - File: $Id: bibtexml.rng 5503 2005-05-27 20:51:35Z cbearden $
+  -
+  - This DTD expresses XML markup similar to the BibTeX language
+  - specified for LaTeX, or actually its content model.
+  - For documentation on BibTeX, see
+  -   http://www.ctan.org/tex-archive/biblio/bibtex/distribs/doc/
+  -
+  - Suggested invocation:
+  -
+  -   <?xml version="1.0" encoding="UTF-8"?>
+  -   <!DOCTYPE bibtex:file PUBLIC
+  -       "-//BibTeXML//DTD XML for BibTeX v1.0//EN"
+  -       "bibteXML.dtd" >
+  -   <bibtex:file xmlns:bibtex="http://bibtexml.sf.net/">
+  -   ...
+  -   </bibtex:file>
+  -
+  - Available from  http://bibtexml.sf.net/
+  -
+  - This code originally developed by
+  - Vidar Bronken Gundersen
+  - Zeger W. Hendrikse
+  - Marco Kuhlmann
+  -
+  - This program is free software; you can redistribute it and/or
+  - modify it under the terms of the GNU General Public License.
+  - See  http://www.gnu.org/copyleft/gpl.html
+  - 
+-->
+<!-- namespace and namespace prefix -->
+<grammar xmlns:bibtex="http://bibtexml.sf.net/" ns="http://bibtexml.sf.net/" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <!-- top level element -->
+  <start>
+    <ref name="file"/>
+  </start>
+  <!-- Qualified Names module .............................................. -->
+  <!--
+    Qualified Names
+    -
+    - This module is contained in two parts, labeled Section 'A' and 'B':
+    -
+    -   Section A declares parameter entities to support namespace-
+    -   qualified names, namespace declarations, and name prefixing.
+    -
+    -   Section B declares parameter entities used to provide
+    -   namespace-qualified names for all element types.
+    -
+    - This module is derived from the XHTML Qualified Names Template module.
+    - 
+  -->
+  <!-- Section A: XML Namespace Framework :::::::::::::::::::: -->
+  <define name="BibTeXML.xmlns.extra.attrib">
+    <empty/>
+  </define>
+  <define name="BibTeXML.xmlns.attrib">
+    <ref name="BibTeXML.xmlns.extra.attrib"/>
+  </define>
+  <!-- Section B: Qualified Names ::::::::::::::::::::::::::::: -->
+  <!--
+    9. This section declares parameter entities used to provide
+    -     namespace-qualified names for all element types.
+  -->
+  <!--
+    ignores subsequent instantiation of this module when
+    -  used as external subset rather than module fragment.
+    -  NOTE: Do not modify this parameter entity, otherwise
+    -  a recursive parsing situation may result.
+  -->
+  <!--
+    if %NS.prefixed; is INCLUDE, include all NS attributes, 
+    otherwise just those associated with MathML
+  -->
+  <define name="BibTeXML.NamespaceDecl.attrib">
+    <ref name="BibTeXML.xmlns.attrib"/>
+  </define>
+  <!--
+    .....................................................................
+    Main structure
+  -->
+  <!-- %entry.qname; may contain one of the bibliographic types. -->
+  <define name="BibTeXML.standard.entries.class">
+    <choice>
+      <ref name="article"/>
+      <ref name="book"/>
+      <ref name="booklet"/>
+      <ref name="manual"/>
+      <ref name="techreport"/>
+      <ref name="mastersthesis"/>
+      <ref name="phdthesis"/>
+      <ref name="inbook"/>
+      <ref name="incollection"/>
+      <ref name="proceedings"/>
+      <ref name="inproceedings"/>
+      <ref name="conference"/>
+      <ref name="unpublished"/>
+      <ref name="misc"/>
+    </choice>
+  </define>
+  <define name="BibTeXML.additional.entries.class">
+    <empty/>
+  </define>
+  <!-- notAllowed -->
+  <define name="BibTeXML.entries.class">
+    <choice>
+      <ref name="BibTeXML.standard.entries.class"/>
+      <ref name="BibTeXML.additional.entries.class"/>
+    </choice>
+  </define>
+  <define name="entry">
+    <element name="entry">
+      <ref name="attlist.entry"/>
+      <ref name="BibTeXML.entries.class"/>
+    </element>
+  </define>
+  <define name="attlist.entry" combine="interleave">
+    <attribute name="id">
+      <data type="ID"/>
+    </attribute>
+  </define>
+  <!-- %file.qname; is the document top element with a namespace indicator. -->
+  <define name="file">
+    <element name="file">
+      <ref name="attlist.file"/>
+      <zeroOrMore>
+        <ref name="entry"/>
+      </zeroOrMore>
+    </element>
+  </define>
+  <!-- attlist.file &= empty -->
+  <define name="attlist.file" combine="interleave">
+    <ref name="BibTeXML.NamespaceDecl.attrib"/>
+  </define>
+  <!--
+    .....................................................................
+    Parameter entities
+  -->
+  <!--
+    these are additional elements often used, but not included in the
+    standard BibTeX distribution, these must be added to the
+    bibliography styles, otherwise these fields will be omitted by
+    the formatter
+  -->
+  <define name="BibTeXML.common.standard.fields">
+    <optional>
+      <ref name="key"/>
+    </optional>
+    <optional>
+      <ref name="crossref"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.additional.fields">
+    <empty/>
+  </define>
+  <!-- notAllowed -->
+  <!--
+    .....................................................................
+    Entries in the BibTeX database
+  -->
+  <!--
+    [article] An article from a journal or magazine.
+    -  Required fields: author, title, journal, year.
+    -  Optional fields: volume, number, pages, month, note.
+  -->
+  <define name="BibTeXML.article.standard.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="journal"/>
+    <ref name="year"/>
+    <optional>
+      <ref name="volume"/>
+    </optional>
+    <optional>
+      <ref name="number"/>
+    </optional>
+    <optional>
+      <ref name="pages"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.article.fields">
+    <ref name="BibTeXML.article.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="article">
+    <element name="article">
+      <ref name="attlist.article"/>
+      <optional>
+        <ref name="BibTeXML.article.fields"/>
+      </optional>
+    </element>
+  </define>
+  <define name="attlist.article" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [book] A book with an explicit publisher.  
+    -  Required fields: author or editor, title, publisher, year.
+    -  Optional fields: volume or number, series, address,
+    -     edition, month, note.
+  -->
+  <define name="BibTeXML.book.standard.fields">
+    <choice>
+      <ref name="author"/>
+      <ref name="editor"/>
+    </choice>
+    <ref name="title"/>
+    <ref name="publisher"/>
+    <ref name="year"/>
+    <optional>
+      <choice>
+        <ref name="volume"/>
+        <ref name="number"/>
+      </choice>
+    </optional>
+    <optional>
+      <ref name="series"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="edition"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.book.fields">
+    <ref name="BibTeXML.book.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="book">
+    <element name="book">
+      <ref name="attlist.book"/>
+      <ref name="BibTeXML.book.fields"/>
+    </element>
+  </define>
+  <define name="attlist.book" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [booklet] A work that is printed and bound, but without a named
+    -  publisher or sponsoring institution  
+    -  Required field: title.
+    -  Optional fields: author, howpublished, address, month, year, note.
+  -->
+  <define name="BibTeXML.booklet.standard.fields">
+    <optional>
+      <ref name="author"/>
+    </optional>
+    <ref name="title"/>
+    <optional>
+      <ref name="howpublished"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="year"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.booklet.fields">
+    <ref name="BibTeXML.booklet.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="booklet">
+    <element name="booklet">
+      <ref name="attlist.booklet"/>
+      <ref name="BibTeXML.booklet.fields"/>
+    </element>
+  </define>
+  <define name="attlist.booklet" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [inbook] A part of a book, which may be a chapter (or section or
+    -  whatever) and/or a range of pages.  
+    -  Required fields: author or editor, title, chapter and/or pages,
+    -     publisher, year.
+    -  Optional fields: volume or number, series, type, address,
+    -     edition, month, note.
+  -->
+  <define name="BibTeXML.inbook.standard.fields">
+    <choice>
+      <ref name="author"/>
+      <ref name="editor"/>
+    </choice>
+    <ref name="title"/>
+    <choice>
+      <group>
+        <ref name="chapter"/>
+        <optional>
+          <ref name="pages"/>
+        </optional>
+      </group>
+      <ref name="pages"/>
+    </choice>
+    <ref name="publisher"/>
+    <ref name="year"/>
+    <optional>
+      <choice>
+        <ref name="volume"/>
+        <ref name="number"/>
+      </choice>
+    </optional>
+    <optional>
+      <ref name="series"/>
+    </optional>
+    <optional>
+      <ref name="type"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="edition"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.inbook.fields">
+    <ref name="BibTeXML.inbook.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="inbook">
+    <element name="inbook">
+      <ref name="attlist.inbook"/>
+      <ref name="BibTeXML.inbook.fields"/>
+    </element>
+  </define>
+  <define name="attlist.inbook" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    - > I want to express that the elements a and/or b are legal that is
+    - > one of them or both must be present in the document instance
+    - > (see the element content for BibTeX entry `InBook').
+    -  in content model:   ((a , b?) | b)          if order matters
+    -                      ((a , b?) | (b , a?))   otherwise
+  -->
+  <!--
+    [incollection] A part of a book having its own title.
+    -  Required fields: author, title, booktitle, publisher, year.
+    -  Optional fields: editor, volume or number, series, type,
+    -     chapter, pages, address, edition, month, note.
+  -->
+  <define name="BibTeXML.incollection.standard.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="booktitle"/>
+    <ref name="publisher"/>
+    <ref name="year"/>
+    <optional>
+      <ref name="editor"/>
+    </optional>
+    <optional>
+      <choice>
+        <ref name="volume"/>
+        <ref name="number"/>
+      </choice>
+    </optional>
+    <optional>
+      <ref name="series"/>
+    </optional>
+    <optional>
+      <ref name="type"/>
+    </optional>
+    <optional>
+      <ref name="chapter"/>
+    </optional>
+    <optional>
+      <ref name="pages"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="edition"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.incollection.fields">
+    <ref name="BibTeXML.incollection.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="incollection">
+    <element name="incollection">
+      <ref name="attlist.incollection"/>
+      <ref name="BibTeXML.incollection.fields"/>
+    </element>
+  </define>
+  <define name="attlist.incollection" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [inproceedings] An article in a conference proceedings.
+    -  Required fields: author, title, booktitle, year.
+    -  Optional fields: editor, volume or number, series, pages,
+    -     address, month, organization, publisher, note.
+  -->
+  <define name="BibTeXML.inproceedings.common.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="booktitle"/>
+    <ref name="year"/>
+    <optional>
+      <ref name="editor"/>
+    </optional>
+    <optional>
+      <choice>
+        <ref name="volume"/>
+        <ref name="number"/>
+      </choice>
+    </optional>
+    <optional>
+      <ref name="series"/>
+    </optional>
+    <optional>
+      <ref name="pages"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="organization"/>
+    </optional>
+    <optional>
+      <ref name="publisher"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.inproceedings.standard.fields">
+    <ref name="BibTeXML.inproceedings.common.fields"/>
+  </define>
+  <define name="BibTeXML.inproceedings.fields">
+    <ref name="BibTeXML.inproceedings.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="inproceedings">
+    <element name="inproceedings">
+      <ref name="attlist.inproceedings"/>
+      <ref name="BibTeXML.inproceedings.fields"/>
+    </element>
+  </define>
+  <define name="attlist.inproceedings" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [conference] The same as INPROCEEDINGS,
+    -  included for Scribe compatibility.
+  -->
+  <define name="BibTeXML.conference.standard.fields">
+    <ref name="BibTeXML.inproceedings.common.fields"/>
+  </define>
+  <define name="BibTeXML.conference.fields">
+    <ref name="BibTeXML.conference.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="conference">
+    <element name="conference">
+      <ref name="attlist.conference"/>
+      <ref name="BibTeXML.conference.fields"/>
+    </element>
+  </define>
+  <define name="attlist.conference" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [manual] Technical documentation  
+    -  Required field: title.
+    -  Optional fields: author, organization, address,
+    -     edition, month, year, note.
+  -->
+  <define name="BibTeXML.manual.standard.fields">
+    <optional>
+      <ref name="author"/>
+    </optional>
+    <ref name="title"/>
+    <optional>
+      <ref name="organization"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="edition"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="year"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.manual.fields">
+    <ref name="BibTeXML.manual.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="manual">
+    <element name="manual">
+      <ref name="attlist.manual"/>
+      <ref name="BibTeXML.manual.fields"/>
+    </element>
+  </define>
+  <define name="attlist.manual" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [mastersthesis] A Master's thesis.  
+    -  Required fields: author, title, school, year.
+    -  Optional fields: type, address, month, note.
+  -->
+  <define name="BibTeXML.thesis.common.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="school"/>
+    <ref name="year"/>
+    <optional>
+      <ref name="type"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.mastersthesis.standard.fields">
+    <ref name="BibTeXML.thesis.common.fields"/>
+  </define>
+  <define name="BibTeXML.mastersthesis.fields">
+    <ref name="BibTeXML.mastersthesis.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="mastersthesis">
+    <element name="mastersthesis">
+      <ref name="attlist.mastersthesis"/>
+      <ref name="BibTeXML.mastersthesis.fields"/>
+    </element>
+  </define>
+  <define name="attlist.mastersthesis" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [phdthesis] A PhD thesis.  
+    -  Required fields: author, title, school, year.
+    -  Optional fields: type, address, month, note.
+  -->
+  <define name="BibTeXML.phdthesis.standard.fields">
+    <ref name="BibTeXML.thesis.common.fields"/>
+  </define>
+  <define name="BibTeXML.phdthesis.fields">
+    <ref name="BibTeXML.phdthesis.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="phdthesis">
+    <element name="phdthesis">
+      <ref name="attlist.phdthesis"/>
+      <ref name="BibTeXML.phdthesis.fields"/>
+    </element>
+  </define>
+  <define name="attlist.phdthesis" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [misc] Use this type when nothing else fits.  
+    -  Required fields: none.
+    -  Optional fields: author, title, howpublished, month, year, note.
+  -->
+  <define name="BibTeXML.misc.standard.fields">
+    <optional>
+      <ref name="author"/>
+    </optional>
+    <optional>
+      <ref name="title"/>
+    </optional>
+    <optional>
+      <ref name="howpublished"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="year"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.misc.fields">
+    <ref name="BibTeXML.misc.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="misc">
+    <element name="misc">
+      <ref name="attlist.misc"/>
+      <ref name="BibTeXML.misc.fields"/>
+    </element>
+  </define>
+  <define name="attlist.misc" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [proceedings] The proceedings of a conference.  
+    -  Required fields: title, year.
+    -  Optional fields: editor, volume or number, series,
+    -     address, month, organization, publisher, note.
+  -->
+  <define name="BibTeXML.proceedings.standard.fields">
+    <optional>
+      <ref name="editor"/>
+    </optional>
+    <ref name="title"/>
+    <ref name="year"/>
+    <optional>
+      <choice>
+        <ref name="volume"/>
+        <ref name="number"/>
+      </choice>
+    </optional>
+    <optional>
+      <ref name="series"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="organization"/>
+    </optional>
+    <optional>
+      <ref name="publisher"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.proceedings.fields">
+    <ref name="BibTeXML.proceedings.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="proceedings">
+    <element name="proceedings">
+      <ref name="attlist.proceedings"/>
+      <ref name="BibTeXML.proceedings.fields"/>
+    </element>
+  </define>
+  <define name="attlist.proceedings" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [techreport] A report published by a school or other institution,
+    -  usually numbered within a series.  
+    -  Required fields: author, title, institution, year.
+    -  Optional fields: type, number, address, month, note.
+  -->
+  <define name="BibTeXML.techreport.standard.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="institution"/>
+    <ref name="year"/>
+    <optional>
+      <ref name="type"/>
+    </optional>
+    <optional>
+      <ref name="number"/>
+    </optional>
+    <optional>
+      <ref name="address"/>
+    </optional>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="note"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.techreport.fields">
+    <ref name="BibTeXML.techreport.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="techreport">
+    <element name="techreport">
+      <ref name="attlist.techreport"/>
+      <ref name="BibTeXML.techreport.fields"/>
+    </element>
+  </define>
+  <define name="attlist.techreport" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    [unpublished] A document having an author and title, but not
+    -  formally published.  
+    -  Required fields: author, title, note.
+    -  Optional fields: month, year.
+  -->
+  <define name="BibTeXML.unpublished.standard.fields">
+    <ref name="author"/>
+    <ref name="title"/>
+    <ref name="note"/>
+    <optional>
+      <ref name="month"/>
+    </optional>
+    <optional>
+      <ref name="year"/>
+    </optional>
+  </define>
+  <define name="BibTeXML.unpublished.fields">
+    <ref name="BibTeXML.unpublished.standard.fields"/>
+    <ref name="BibTeXML.common.standard.fields"/>
+    <ref name="BibTeXML.additional.fields"/>
+  </define>
+  <define name="unpublished">
+    <element name="unpublished">
+      <ref name="attlist.unpublished"/>
+      <ref name="BibTeXML.unpublished.fields"/>
+    </element>
+  </define>
+  <define name="attlist.unpublished" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    .....................................................................
+    Fields from the standard bibliography styles
+  -->
+  <!--
+    - Below is a description of all fields recognized by the standard
+    - bibliography styles.  An entry can also contain other fields, which
+    - are ignored by those styles.
+    - 
+    - [address] Usually the address of the publisher or other type of
+    - institution  For major publishing houses, van~Leunen recommends
+    - omitting the information entirely.  For small publishers, on the other
+    - hand, you can help the reader by giving the complete address.
+    - 
+    - [annote] An annotation  It is not used by the standard bibliography
+    - styles, but may be used by others that produce an annotated
+    - bibliography.
+    - 
+    - [author] The name(s) of the author(s), in the format described in the
+    - LaTeX book.
+    - 
+    - [booktitle] Title of a book, part of which is being cited.  See the
+    - LaTeX book for how to type titles.  For book entries, use the title
+    - field instead.
+    - 
+    - [chapter] A chapter (or section or whatever) number.
+    - 
+    - [crossref] The database key of the entry being cross referenced.
+    - 
+    - [edition] The edition of a book-for example, ``Second''.  This
+    - should be an ordinal, and should have the first letter capitalized, as
+    - shown here; the standard styles convert to lower case when necessary.
+    - 
+    - [editor] Name(s) of editor(s), typed as indicated in the LaTeX book.
+    - If there is also an author field, then the editor field gives the
+    - editor of the book or collection in which the reference appears.
+    - 
+    - [howpublished] How something strange has been published.  The first
+    - word should be capitalized.
+    - 
+    - [institution] The sponsoring institution of a technical report.
+    - 
+    - [journal] A journal name.  Abbreviations are provided for many
+    - journals; see the Local Guide.
+    - 
+    - [key] Used for alphabetizing, cross referencing, and creating a label
+    - when the ``author'' information (described in Section [ref: ] is
+    - missing. This field should not be confused with the key that appears
+    - in the \cite command and at the beginning of the database entry.
+    - 
+    - [month] The month in which the work was published or, for an
+    - unpublished work, in which it was written  You should use the
+    - standard three-letter abbreviation, as described in Appendix B.1.3 of
+    - the LaTeX book.
+    - 
+    - [note] Any additional information that can help the reader.  The first
+    - word should be capitalized.
+    - 
+    - [number] The number of a journal, magazine, technical report, or of a
+    - work in a series.  An issue of a journal or magazine is usually
+    - identified by its volume and number; the organization that issues a
+    - technical report usually gives it a number; and sometimes books are
+    - given numbers in a named series.
+    - 
+    - [organization] The organization that sponsors a conference or that
+    - publishes a manual.
+    - 
+    - [pages] One or more page numbers or range of numbers, such as 42-111
+    - or 7,41,73-97 or 43+ (the `+' in this last example indicates pages
+    - following that don't form a simple range).  To make it easier to
+    - maintain Scribe-compatible databases, the standard styles convert a
+    - single dash (as in 7-33) to the double dash used in TeX to denote
+    - number ranges (as in 7-33).
+    - 
+    - [publisher] The publisher's name.
+    - 
+    - [school] The name of the school where a thesis was written
+    - 
+    - [series] The name of a series or set of books.  When citing an entire
+    - book, the the title field gives its title and an optional series field
+    - gives the name of a series or multi-volume set in which the book is
+    - published.
+    - 
+    - [title] The work's title, typed as explained in the LaTeX book.
+    - 
+    - [type] The type of a technical report-for example, ``Research Note''.
+    - 
+    - [volume] The volume of a journal or multivolume book.
+    - 
+    - [year] The year of publication or, for an unpublished work, the year
+    - it was written.  Generally it should consist of four numerals, such as
+    - 1984, although the standard styles can handle any year whose last four
+    - nonpunctuation characters are numerals, such as `(about 1984)'.
+  -->
+  <define name="address">
+    <element name="address">
+      <ref name="attlist.address"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.address" combine="interleave">
+    <empty/>
+  </define>
+  <define name="author">
+    <element name="author">
+      <ref name="attlist.author"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.author" combine="interleave">
+    <empty/>
+  </define>
+  <define name="booktitle">
+    <element name="booktitle">
+      <ref name="attlist.booktitle"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.booktitle" combine="interleave">
+    <empty/>
+  </define>
+  <define name="chapter">
+    <element name="chapter">
+      <ref name="attlist.chapter"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.chapter" combine="interleave">
+    <empty/>
+  </define>
+  <define name="edition">
+    <element name="edition">
+      <ref name="attlist.edition"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.edition" combine="interleave">
+    <empty/>
+  </define>
+  <define name="editor">
+    <element name="editor">
+      <ref name="attlist.editor"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.editor" combine="interleave">
+    <empty/>
+  </define>
+  <define name="howpublished">
+    <element name="howpublished">
+      <ref name="attlist.howpublished"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.howpublished" combine="interleave">
+    <empty/>
+  </define>
+  <define name="institution">
+    <element name="institution">
+      <ref name="attlist.institution"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.institution" combine="interleave">
+    <empty/>
+  </define>
+  <define name="journal">
+    <element name="journal">
+      <ref name="attlist.journal"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.journal" combine="interleave">
+    <empty/>
+  </define>
+  <define name="month">
+    <element name="month">
+      <ref name="attlist.month"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.month" combine="interleave">
+    <empty/>
+  </define>
+  <define name="note">
+    <element name="note">
+      <ref name="attlist.note"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.note" combine="interleave">
+    <empty/>
+  </define>
+  <define name="number">
+    <element name="number">
+      <ref name="attlist.number"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.number" combine="interleave">
+    <empty/>
+  </define>
+  <define name="organization">
+    <element name="organization">
+      <ref name="attlist.organization"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.organization" combine="interleave">
+    <empty/>
+  </define>
+  <define name="pages">
+    <element name="pages">
+      <ref name="attlist.pages"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.pages" combine="interleave">
+    <empty/>
+  </define>
+  <define name="publisher">
+    <element name="publisher">
+      <ref name="attlist.publisher"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.publisher" combine="interleave">
+    <empty/>
+  </define>
+  <define name="school">
+    <element name="school">
+      <ref name="attlist.school"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.school" combine="interleave">
+    <empty/>
+  </define>
+  <define name="series">
+    <element name="series">
+      <ref name="attlist.series"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.series" combine="interleave">
+    <empty/>
+  </define>
+  <define name="title">
+    <element name="title">
+      <ref name="attlist.title"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.title" combine="interleave">
+    <empty/>
+  </define>
+  <define name="type">
+    <element name="type">
+      <ref name="attlist.type"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.type" combine="interleave">
+    <empty/>
+  </define>
+  <define name="volume">
+    <element name="volume">
+      <ref name="attlist.volume"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.volume" combine="interleave">
+    <empty/>
+  </define>
+  <define name="year">
+    <element name="year">
+      <ref name="attlist.year"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.year" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    - In addition to the fields listed above, each entry type also has
+    - an optional key field, used in some styles for alphabetizing, or
+    - for forming a \bibitem label. You should include a key field for
+    - any entry whose ``author'' information is missing;
+  -->
+  <define name="key">
+    <element name="key">
+      <ref name="attlist.key"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.key" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    - BibTEX has a new cross-referencing feature, explained by an example.
+    -    @INPROCEEDINGS(no-gnats,
+    -        crossref = "gg-proceedings",
+    -    @PROCEEDINGS(gg-proceedings,
+  -->
+  <define name="crossref">
+    <element name="crossref">
+      <ref name="attlist.crossref"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.crossref" combine="interleave">
+    <empty/>
+  </define>
+  <!--
+    - Annotation is not used by the standard bibliography styles,
+    - if you prefer otherwise, incude it in BibTeXML.common.standard.fields
+  -->
+  <define name="annote">
+    <element name="annote">
+      <ref name="attlist.annote"/>
+      <text/>
+    </element>
+  </define>
+  <define name="attlist.annote" combine="interleave">
+    <empty/>
+  </define>
+</grammar>
+<!-- End of BibTeXML schema -->

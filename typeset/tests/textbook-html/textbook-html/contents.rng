@@ -1,0 +1,26 @@
+<grammar ns="http://www.w3.org/1999/xhtml"
+         xmlns="http://relaxng.org/ns/structure/1.0">
+
+<include href="./_content.rng"/>
+<include href="./_book-structure.rng"/>
+
+<!-- from xhtml/modules/struct.rng but changed to only include a subset of valid "root" elements -->
+<define name="body">
+
+  <element name="body">
+    <ref name="body.attlist"/>
+    <ref name="Block.model"/>
+
+    <optional>
+      <ref name="Structure.Page.FootnoteRefs"/>
+    </optional>
+    <optional>
+      <ref name="Structure.Page.Glossary"/>
+    </optional>
+
+  </element>
+
+</define>
+
+
+</grammar>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="http://cnx.rice.edu/collxml">
+
+  <start>
+    <ref name="mdml-abstract"/>
+  </start>
+
+  <include href="cnxml-abstract-defs.rng">
+    <define name="cnxml-abstract-common-attributes">
+      <ref name="common-attributes-noclass"/>
+    </define>
+    <define name="cnxml-abstract-list-type-attribute">
+      <choice>
+        <ref name="bulleted-list-type-attribute"/>
+        <ref name="enumerated-list-type-attribute"/>
+      </choice>
+    </define>
+    <define name="cnxml-abstract-display-attribute">
+      <ref name="display-attribute"/>
+    </define>
+  </include>
+
+  <define name="cnxml-abstract-text-extras" combine="choice">
+    <ref name="mathml-math"/>
+  </define>
+
+  <include href="../../../../mdml/schema/rng/0.5/mdml-defs.rng">
+    <define name="mdml-metadata">
+      <notAllowed/>
+    </define>
+    <define name="mdml-abstract-content">
+      <ref name="cnxml-abstract-content"/>
+    </define>
+    <define name="mdml-common-attributes">
+      <ref name="common-attributes"/>
+    </define>
+    <define name="mdml-extended-attribution">
+      <element name="extended-attribution" ns="http://cnx.rice.edu/mdml">
+        <ref name="mdml-common-attributes"/>
+        <oneOrMore>
+          <ref name="link-group"/>
+        </oneOrMore>
+      </element>
+    </define>
+    <define name="mdml-derived-from">
+      <element name="derived-from" ns="http://cnx.rice.edu/mdml">
+        <choice>
+          <ref name="url-attribute"/>
+          <group>
+            <ref name="document-attribute"/>
+            <optional>
+              <ref name="version-attribute"/>
+            </optional>
+            <optional>
+              <ref name="repository-attribute"/>
+            </optional>
+          </group>
+        </choice>
+        <zeroOrMore>
+          <ref name="mdml-derived-from"/>
+        </zeroOrMore>
+      </element>
+    </define>
+  </include>
+
+  <include href="cnxml-defs.rng"/>
+
+  <define name="mathml-math">
+    <externalRef href="../../../../mathml/schema/rng/2.0/mathml2.rng"/>
+  </define>
+
+  <define name="repository-attribute">
+    <attribute name="repository"/>
+  </define>
+
+</grammar>

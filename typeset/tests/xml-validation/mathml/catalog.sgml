@@ -1,0 +1,12 @@
+-- SGML Open style entity catalog                                        --
+
+-- Add elements to this file: the format is                              --
+-- PUBLIC [Identifier] [path to file, full or relative to /usr/lib/sgml] --
+-- ..................................................................... --
+
+-- public identifiers override system identifiers, if both are supplied   --
+OVERRIDE YES
+
+-- MathML --
+PUBLIC "-//W3C//DTD MathML 2.0//EN"                                             /usr/share/xml/mathml/schema/dtd/2.0/mathml2.dtd
+PUBLIC "-//W3C//ENTITIES MathML 2.0 Qualified Names 1.0//EN"                    /usr/share/xml/mathml/schema/dtd/2.0/mathml2-qname-1.mod

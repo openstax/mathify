@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <!-- QML Entities -->
+  <public publicId="-//CNX//DTD QML 1.0//EN" uri="schema/dtd/1.0/qml.dtd"/>
+  <public publicId="-//CNX//ENTITIES QML 1.0 Qualified Names 1.0//EN" uri="schema/dtd/1.0/qml1-qname-1.mod"/>
+  <public publicId="-//CNX//ELEMENTS QML 1.0 Elements//EN"  uri="schema/dtd/1.0/qml1.mod"/>
+  <rewriteSystem systemIdStartString="http://cnx.rice.edu/technology/qml/" rewritePrefix="."/>
+  <rewriteUri uriStartString="http://cnx.rice.edu/technology/qml/" rewritePrefix="."/>
+  
+</catalog>
