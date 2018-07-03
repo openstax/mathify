@@ -13,6 +13,10 @@ const log = bunyan.createLogger({
 })
 
 const argv = yargs
+  .option('format', {
+    alias: 'f',
+    describe: 'Output format for MathJax Conversion: HTML-CSS, SVG. Default: HTML-CSS'
+  })
   .option('xhtml', {
     alias: 'i',
     describe: 'Input XHTML File'
@@ -31,6 +35,7 @@ const argv = yargs
 
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
+const mathJaxOutputFormat = argv.format ? argv.format : 'HTML-CSS'
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath)
+converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath, mathJaxOutputFormat)
