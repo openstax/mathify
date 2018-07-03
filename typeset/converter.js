@@ -176,6 +176,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath, m
       console.log(`Attempting to inject MathJax from "${mathJaxPath}"`)
       mjax.src = mathJaxPath
       document.body.appendChild(mjax)
+      window.__TYPESET_CONFIG.elementsToRemove.push(mjax)
     })
   }, mathJaxPath, mathJaxOutputFormat)
 
