@@ -35,7 +35,14 @@ const argv = yargs
 
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
-const mathJaxOutputFormat = argv.format ? argv.format : 'HTML-CSS'
+let mathJaxOutputFormat = ''
+
+if (['SVG', 'HTML-CSS'].indexOf(argv.format.toUpperCase()) >= 0) {
+  mathJaxOutputFormat = argv.format.toUpperCase()
+} else {
+  log.error(`You provided wrong format. It will be set to default HTML-CSS`)
+  mathJaxOutputFormat = 'HTML-CSS'
+}
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
 converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath, mathJaxOutputFormat)
