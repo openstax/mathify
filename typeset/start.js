@@ -3,7 +3,6 @@ const yargs = require('yargs')
 require('dotenv').config()
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
-const mathJaxPath = require.resolve('mathjax/unpacked/MathJax')
 const converter = require('./converter')
 
 const log = bunyan.createLogger({
@@ -33,4 +32,4 @@ const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath)
+converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output)
