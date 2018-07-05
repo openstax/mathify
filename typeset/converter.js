@@ -194,7 +194,12 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
       }
       let msg = document.getElementById('MathJax_Message')
       if (msg && msg.innerText !== '') {
-        console.info(`Progress: "${document.getElementById('MathJax_Message').innerText}"`)
+        const newMessage = `Progress: "${document.getElementById('MathJax_Message').innerText}"`
+        // Do not emit to the log every second if the message did not change
+        if (newMessage !== window.__TYPESET_CONFIG.previousMessage) {
+          console.info(newMessage)
+          window.__TYPESET_CONFIG.previousMessage = newMessage
+        }
       }
       return {
         isDone: window.__TYPESET_CONFIG.isDone,
