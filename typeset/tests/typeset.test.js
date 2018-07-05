@@ -45,7 +45,7 @@ test('Success if everything is ok.', async (done) => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   done()
-}, 15000)
+}, 30000)
 
 test('Test output file for containing MathJax converted elements and do not contain MathML elements.', async (done) => {
   const browser = await puppeteer.launch({
@@ -75,4 +75,4 @@ test('Test output file for containing MathJax converted elements and do not cont
   expect(res.mathJaxClasses).toBeGreaterThan(0)
   expect(res.mathMLElements).toEqual(0)
   done()
-}, 15000)
+}, 30000)
