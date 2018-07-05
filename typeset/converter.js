@@ -17,7 +17,7 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) => {
+const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath, mathJaxOutputFormat) => {
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
     log.error(`Input XHTML file not found: "${inputPath}"`)
@@ -108,11 +108,12 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
 
   // Typeset equations
   log.info(`Injecting MathJax (and typesetting)...`)
-  const didMathJaxLoad = await page.evaluate(/* istanbul ignore next */(mathJaxPath) => {
+  const didMathJaxLoad = await page.evaluate(/* istanbul ignore next */(mathJaxPath, mathJaxOutputFormat) => {
     console.log('Setting config for MathJax...')
+    console.log(`Setting output format to ${mathJaxOutputFormat}`)
     const MATHJAX_CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
-      jax: ['input/MathML', 'output/HTML-CSS'],
+      jax: ['input/MathML', `output/${mathJaxOutputFormat}`],
       showMathMenu: false,
       showMathMenuMSIE: false,
       mml2jax: {
@@ -160,7 +161,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
           document.querySelector('body>:first-child').style.setProperty('display', 'none')
           window.__TYPESET_CONFIG.isDone = true
         })
-        window.MathJax.Hub.setRenderer('HTML-CSS')
+        window.MathJax.Hub.setRenderer(mathJaxOutputFormat)
         window.MathJax.Hub.Config(MATHJAX_CONFIG)
         resolve(true)
       };
@@ -175,8 +176,9 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
       console.log(`Attempting to inject MathJax from "${mathJaxPath}"`)
       mjax.src = mathJaxPath
       document.body.appendChild(mjax)
+      window.__TYPESET_CONFIG.elementsToRemove.push(mjax)
     })
-  }, mathJaxPath)
+  }, mathJaxPath, mathJaxOutputFormat)
 
   if (!didMathJaxLoad) {
     log.fatal('MathJax did not load')
