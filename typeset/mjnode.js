@@ -10,6 +10,10 @@ async function sleep (ms) {
 const convertMathML = async (log, mathMLElementsMap) => {
     log.info('Setting config for MathJaxNode...')
     mjAPI.config({
+        displayMessages: false,    // determines whether Message.Set() calls are logged
+        displayErrors:   true,     // determines whether error messages are shown on the console
+        undefinedCharError: false, // determines whether "unknown characters" (i.e., no glyph in the configured fonts) are saved in the error array
+        extensions: '',
         MathJax: {
             // traditional MathJax configuration
         }

@@ -122,7 +122,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     // Array.isArray(mathMLElements) === false
     let fullLength = mathMLElements.length
     let progress = 0
-    while(mathMLElements.length){
+    /* while(mathMLElements.length){
       mathMLElementsMap[index] = mathMLElements[mathMLElements.length - 1].outerHTML
       mathMLElements[mathMLElements.length - 1].outerHTML = `<span id="mjnode-${index}" class="mjnode-replace"></span>`
       let newProgress = Math.round((fullLength - mathMLElements.length) / fullLength * 100)
@@ -131,18 +131,22 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
         progress = newProgress
       }
       index++
-    }
+    } */
     /* Array.prototype.forEach.call(mathMLElements, (el, i) => {
       mathMLElementsMap[i] = el.outerHTML
       el.outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
       console.log(`mathMLElements.length: ${mathMLElements.length}`)
       console.log(`Switched ${i} element`)
     }) */
-    /* for(let i = 0; i < mathMLElements.length; i++){
+    for(let i = 0; i < mathMLElements.length; i++){
       mathMLElementsMap[i] = mathMLElements[i].outerHTML
-      mathMLElements[i].outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
-      console.log(`Switched ${i} element`)
-    } */
+      mathMLElements[i].id = `mjnode-${i}`
+      let newProgress = Math.round((fullLength - mathMLElements.length) / fullLength * 100)
+      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
+        console.info(`Already mapped ${newProgress}% of all elements...`)
+        progress = newProgress
+      }
+    }
     if(mathMLElements.length){
       console.error(`There is still ${mathMLElements.length} not converted mathML elements.`)
     }else{
@@ -177,7 +181,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     let progress = 0
     for(let i = 0; i < fullLength; i++){
       let mathHTML = convertedMathML[i]
-      document.getElementById(`mjnode-${i}`).innerHTML = mathHTML
+      document.getElementById(`mjnode-${i}`).outerHTML = mathHTML
       let newProgress = Math.round((fullLength - (fullLength - i)) / fullLength * 100)
       if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
           console.info(`Inserted ${newProgress}% of all elements...`)
