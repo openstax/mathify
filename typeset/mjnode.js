@@ -14,10 +14,16 @@ const convertMathML = async (log, mathMLElementsMap) => {
             // traditional MathJax configuration
         }
     })
+    log.info('Config is set.')
     mjAPI.start()
 
+    log.info('Starting conversion of mapped mathML elements with mathjax-node...')
+    log.info(`There is ${Object.keys(mathMLElementsMap).length} elements to process...`)
     let convertedMathMLElements = {}
-    for(let i = 0; i < Object.keys(mathMLElementsMap).length; i++){
+    let failedElementsIds = []
+    let fullLength = Object.keys(mathMLElementsMap).length
+    let progress = 0
+    for(let i = 0; i < fullLength; i++){
         let mathToProcess = mathMLElementsMap[i]
     
         mjAPI.typeset({
@@ -29,10 +35,21 @@ const convertMathML = async (log, mathMLElementsMap) => {
                 convertedMathMLElements[i] = data.svg
                 log.debug(`Converted ${i} element`)
             }else{
-                log.error(`Conversion of ${i} element crashed`)                
-                convertedMathMLElements[i] = "error"
+                convertedMathMLElements[i] = `<span id="mjnode-failed-${i}" class="mjnode-failed">!!Conversion of equasion failed!!</span>`                
+                log.debug(`Conversion of ${i} element crashed. Find this element by his id="mjnode-failed-${i}"`)    
+                failedElementsIds.push(i)            
             }
         })
+
+        let newProgress = Math.round((fullLength - (fullLength - i)) / fullLength * 100)
+        if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
+            log.info(`Converted ${newProgress}% of all elements...`)
+            progress = newProgress
+        }
+    }
+
+    if (failedElementsIds.length){
+        log.error(`Conversion of ${failedElementsIds.length} elements failed. You can find thouse elements by searching their class="mjnode-failed".`)
     }
 
     while(true){
@@ -44,7 +61,7 @@ const convertMathML = async (log, mathMLElementsMap) => {
         }
     }
 
-    log.info(`Converted ${Object.keys(convertedMathMLElements).length} elements.`)
+    log.info(`Converted all ${Object.keys(convertedMathMLElements).length} elements.`)
     return convertedMathMLElements
 }
 

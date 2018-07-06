@@ -109,19 +109,27 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     window.__TYPESET_CONFIG.elementsToRemove.push(meta)
   }, cssPath)
 
-  let res = await page.evaluate(/* istanbul ignore next */ async() => {
+  let res = await page.evaluate(/* istanbul ignore next */() => {
     let mathMLElements = document.getElementsByTagName('m:math')
-    console.log(`Found ${mathMLElements.length} <m:math> elements`)
+    console.info(`Found ${mathMLElements.length} <m:math> elements`)
+    console.info('Mapping mathML elements in the document...')
+    console.log(`This loop will create object with "id: <m:math>" key vals and then replace all <m:math> elements with spans with proper ids.`)
     let mathMLElementsMap = {}
     let index = 0
-    // Length of mathMLElements is decreasing with every loop 
-    // because we are replacing <m:math> element with <span>
-    // so every other loop will process only half of elements.
+    // Length of mathMLElements is decreasing with every loop,
+    // because we are replacing <m:math> element with <span> after saving it in mathMLElementsMap
+    // If you will try forEach loop on mathMLElements then it will process only half of elements
     // Array.isArray(mathMLElements) === false
+    let fullLength = mathMLElements.length
+    let progress = 0
     while(mathMLElements.length){
       mathMLElementsMap[index] = mathMLElements[mathMLElements.length - 1].outerHTML
       mathMLElements[mathMLElements.length - 1].outerHTML = `<span id="mjnode-${index}" class="mjnode-replace"></span>`
-      console.log(`Switched ${index} element`)
+      let newProgress = Math.round((fullLength - mathMLElements.length) / fullLength * 100)
+      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
+        console.info(`Already mapped ${newProgress}% of all elements...`)
+        progress = newProgress
+      }
       index++
     }
     /* Array.prototype.forEach.call(mathMLElements, (el, i) => {
@@ -135,11 +143,13 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
       mathMLElements[i].outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
       console.log(`Switched ${i} element`)
     } */
-    console.log(`Found after ${mathMLElements.length} <m:math> elements`)
+    if(mathMLElements.length){
+      console.error(`There is still ${mathMLElements.length} not converted mathML elements.`)
+    }else{
+      console.info('Mapped 100% of all elements.')
+    }
 
-    console.log(`All elements replaced with numbered span.`)
-
-    console.log('Serializing content...')
+    console.info('Starting serializing content...')
     let s = new window.XMLSerializer()
     let serializedContent = s.serializeToString(document)
 
@@ -150,24 +160,32 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     return res
   })
 
-  log.info('Saving file without MathML elements ...')
+  log.info('Saving file without MathML elements...')
   await writeFile(output, res.serializedContent)
 
-  log.info('Converting mathML with MathJaxNode...')
+  log.info('Starting mjnodeConverter...')
   let convertedMathML = await mjnodeConverter.convertMathML(log, res.mathMLElementsMap)
 
+  log.info(`Opening ${output}...`)
   await page.goto(`file://${path.resolve(output)}`)
 
   log.info(`Opened ${path.resolve(output)} file.`)
+
   log.info(`Starting inserting converted math elements...`)
-  
   let convertedContent = await page.evaluate((convertedMathML) => {
-    for(let i = 0; i < Object.keys(convertedMathML).length; i++){
+    let fullLength = Object.keys(convertedMathML).length
+    let progress = 0
+    for(let i = 0; i < fullLength; i++){
       let mathHTML = convertedMathML[i]
       document.getElementById(`mjnode-${i}`).innerHTML = mathHTML
-      console.log(`Inserted ${i} element.`)
+      let newProgress = Math.round((fullLength - (fullLength - i)) / fullLength * 100)
+      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
+          console.info(`Inserted ${newProgress}% of all elements...`)
+          progress = newProgress
+      }
     }
     
+    console.info(`Inserted all ${fullLength} converted elements.`)
     return document.documentElement.innerHTML
   }, convertedMathML)
 
