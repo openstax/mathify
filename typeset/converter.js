@@ -31,7 +31,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
   }
 
   const url = `file://${inputPath}`
-  const output = `${outputPath}`
+  const output = path.resolve(outputPath)
 
   log.debug('Starting puppeteer...')
   const browser = await puppeteer.launch({
@@ -109,89 +109,80 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     window.__TYPESET_CONFIG.elementsToRemove.push(meta)
   }, cssPath)
 
-  let res = await page.evaluate(/* istanbul ignore next */() => {
-    let mathMLElements = document.getElementsByTagName('m:math')
-    console.info(`Found ${mathMLElements.length} <m:math> elements`)
-    console.info('Mapping mathML elements in the document...')
-    console.log(`This loop will create object with "id: <m:math>" key vals and then replace all <m:math> elements with spans with proper ids.`)
-    let mathMLElementsMap = {}
+  const {serializedContent, mathEntries} = await page.evaluate(/* istanbul ignore next */() => {
+    const mathNodes = document.getElementsByTagName('m:math')
+    console.log(`Found ${mathNodes.length} <m:math> elements`)
+    console.info('Extracting MathML elements from the document...')
+    const total = mathNodes.length
+    const mathMap/*: Map<string, string>*/ = new Map()
+    let prevPercent = 0
     let index = 0
-    // Length of mathMLElements is decreasing with every loop,
-    // because we are replacing <m:math> element with <span> after saving it in mathMLElementsMap
-    // If you will try forEach loop on mathMLElements then it will process only half of elements
-    // Array.isArray(mathMLElements) === false
-    let fullLength = mathMLElements.length
-    let progress = 0
-    /* while(mathMLElements.length){
-      mathMLElementsMap[index] = mathMLElements[mathMLElements.length - 1].outerHTML
-      mathMLElements[mathMLElements.length - 1].outerHTML = `<span id="mjnode-${index}" class="mjnode-replace"></span>`
-      let newProgress = Math.round((fullLength - mathMLElements.length) / fullLength * 100)
-      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
-        console.info(`Already mapped ${newProgress}% of all elements...`)
-        progress = newProgress
+    for (const mathNode of mathNodes) {
+      const percent = Math.floor(100 * index / total)
+      const xml = mathNode.outerHTML
+      // only set an ID if one does not already exist
+      if (!mathNode.getAttribute('id')) {
+        mathNode.setAttribute('id', `mjnode-${index}`)
+        mathNode.classList.add('-remove-id-later')
       }
+
+      const id = mathNode.getAttribute('id')
+      if (percent % 10 === 0 && total > 100 && prevPercent !== percent) {
+        console.info(`Extraction Progress ${percent}%`)
+      }
+      if (mathMap.has(id)) {
+        throw new Error(`Duplicate id detected: "${id}"`)
+      }
+      mathMap.set(id, xml)
       index++
-    } */
-    /* Array.prototype.forEach.call(mathMLElements, (el, i) => {
-      mathMLElementsMap[i] = el.outerHTML
-      el.outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
-      console.log(`mathMLElements.length: ${mathMLElements.length}`)
-      console.log(`Switched ${i} element`)
-    }) */
-    for(let i = 0; i < mathMLElements.length; i++){
-      mathMLElementsMap[i] = mathMLElements[i].outerHTML
-      mathMLElements[i].id = `mjnode-${i}`
-      let newProgress = Math.round((fullLength - mathMLElements.length) / fullLength * 100)
-      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
-        console.info(`Already mapped ${newProgress}% of all elements...`)
-        progress = newProgress
-      }
+      prevPercent = percent
     }
-    if(mathMLElements.length){
-      console.error(`There is still ${mathMLElements.length} not converted mathML elements.`)
-    }else{
-      console.info('Mapped 100% of all elements.')
-    }
+    console.info('Serializing temporary content...')
+    const s = new window.XMLSerializer()
+    const serializedContent = s.serializeToString(document)
 
-    console.info('Starting serializing content...')
-    let s = new window.XMLSerializer()
-    let serializedContent = s.serializeToString(document)
-
-    let res = {
+    return {
       serializedContent: serializedContent,
-      mathMLElementsMap: mathMLElementsMap
+      mathEntries: [...mathMap.entries()]
     }
-    return res
   })
 
-  log.info('Saving file without MathML elements...')
-  await writeFile(output, res.serializedContent)
+  log.info('Saving temporary output file without MathML elements...')
+  await writeFile(output, serializedContent)
 
   log.info('Starting mjnodeConverter...')
-  let convertedMathML = await mjnodeConverter.convertMathML(log, res.mathMLElementsMap)
+  const convertedMathML = await mjnodeConverter.convertMathML(log, new Map(mathEntries))
 
-  log.info(`Opening ${output}...`)
-  await page.goto(`file://${path.resolve(output)}`)
+  log.debug(`Opening ${output}...`)
+  log.info(`Opening temporary file`)
+  await page.goto(`file://${output}`)
 
-  log.info(`Opened ${path.resolve(output)} file.`)
-
+  log.debug(`Opened ${output} file.`)
   log.info(`Starting inserting converted math elements...`)
-  let convertedContent = await page.evaluate((convertedMathML) => {
-    let fullLength = Object.keys(convertedMathML).length
-    let progress = 0
-    for(let i = 0; i < fullLength; i++){
-      let mathHTML = convertedMathML[i]
-      document.getElementById(`mjnode-${i}`).outerHTML = mathHTML
-      let newProgress = Math.round((fullLength - (fullLength - i)) / fullLength * 100)
-      if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
-          console.info(`Inserted ${newProgress}% of all elements...`)
-          progress = newProgress
+  let convertedContent = await page.evaluate((convertedMathMLEntries) => {
+    const convertedMathML = new Map(convertedMathMLEntries)
+    let fullLength = convertedMathML.size
+    let prevPercent = 0
+    let index = 0
+    for(const [id, xml] of convertedMathML.entries()){
+      const mathHTML = xml
+      const mathNode = document.getElementById(id)
+      if (!mathNode) {
+        throw new Error(`BUG: Could not find element with id="${id}"`)
       }
+      mathNode.outerHTML = mathHTML
+      let percent = Math.round((fullLength - (fullLength - index)) / fullLength * 100)
+      if (prevPercent !== percent && percent % 10 === 0){
+          console.info(`Inserted ${percent}% of all elements...`)
+          prevPercent = percent
+      }
+      index++
     }
-    
-    console.info(`Inserted all ${fullLength} converted elements.`)
+
+    console.log(`Inserted ${fullLength} elements`)
+    console.info(`Inserted all converted elements.`)
     return document.documentElement.innerHTML
-  }, convertedMathML)
+  }, [...convertedMathML.entries()])
 
   log.info('Saving file with injected math HTML elements...')
   await writeFile(output, convertedContent)

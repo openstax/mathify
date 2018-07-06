@@ -1,13 +1,6 @@
 const  mjAPI = require("mathjax-node")
 
-// Helper so we can write `await sleep(1000)`
-async function sleep (ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms)
-    })
-}
-
-const convertMathML = async (log, mathMLElementsMap) => {
+const convertMathML = async (log, mathMap) => {
     log.info('Setting config for MathJaxNode...')
     mjAPI.config({
         displayMessages: false,    // determines whether Message.Set() calls are logged
@@ -20,52 +13,46 @@ const convertMathML = async (log, mathMLElementsMap) => {
     })
     log.info('Config is set.')
     mjAPI.start()
-
-    log.info('Starting conversion of mapped mathML elements with mathjax-node...')
-    log.info(`There is ${Object.keys(mathMLElementsMap).length} elements to process...`)
-    let convertedMathMLElements = {}
-    let failedElementsIds = []
-    let fullLength = Object.keys(mathMLElementsMap).length
-    let progress = 0
-    for(let i = 0; i < fullLength; i++){
-        let mathToProcess = mathMLElementsMap[i]
-    
+    async function mjTypeset(source) {
+      return new Promise((resolve, reject) => {
         mjAPI.typeset({
-            math: mathToProcess,
-            format: "MathML", // "inline-TeX", "TeX", "MathML"
-            svg:true,      // svg:true, mml:true, html:true
-            }, function (data) {
-            if (!data.errors) {
-                convertedMathMLElements[i] = data.svg
-                log.debug(`Converted ${i} element`)
-            }else{
-                convertedMathMLElements[i] = `<span id="mjnode-failed-${i}" class="mjnode-failed">!!Conversion of equasion failed!!</span>`                
-                log.debug(`Conversion of ${i} element crashed. Find this element by his id="mjnode-failed-${i}"`)    
-                failedElementsIds.push(i)            
-            }
+          math: source,
+          format: "MathML", // "inline-TeX", "TeX", "MathML"
+          svg: true,      // svg:true, mml:true, html:true
+        }, ({errors, svg, html}) => {
+          if (errors) {
+            reject(errors)
+          } else {
+            resolve(svg || html) // Depending on which output format was chosen
+          }
         })
-
-        let newProgress = Math.round((fullLength - (fullLength - i)) / fullLength * 100)
-        if (Math.round(newProgress / 10) !== Math.round(progress / 10)){
-            log.info(`Converted ${newProgress}% of all elements...`)
-            progress = newProgress
-        }
+      })
     }
 
-    if (failedElementsIds.length){
-        log.error(`Conversion of ${failedElementsIds.length} elements failed. You can find thouse elements by searching their class="mjnode-failed".`)
-    }
+    const total = mathMap.size
+    log.debug(`There are ${total} elements to process...`)
+    log.info('Starting conversion of mapped mathML elements with mathjax-node...')
+    const convertedMathMLElements = new Map()
+    let prevPercent = 0
+    let numDone = 0
+    const promises = [...mathMap.entries()].map(([id, xml]) => {
+        return mjTypeset(xml)
+        .then((converted) => {
+          numDone++
+          const percent = Math.floor(100 * numDone / total)
+          if (percent !== prevPercent) {
+            if (total > 100) {
+              log.info(`Typesetting Progress: ${percent}%`)
+            }
+            prevPercent = percent
+          }
+          convertedMathMLElements.set(id, converted)
+        })
+    })
 
-    while(true){
-        let a = Object.keys(convertedMathMLElements).length
-        if (a < Object.keys(mathMLElementsMap).length){
-            await sleep(1000)
-        }else{
-            break
-        }
-    }
-
-    log.info(`Converted all ${Object.keys(convertedMathMLElements).length} elements.`)
+    await Promise.all(promises)
+    log.debug(`Converted ${total} elements.`)
+    log.info(`Converted all elements.`)
     return convertedMathMLElements
 }
 
