@@ -6,6 +6,13 @@ const puppeteer = require('puppeteer')
 const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
 
+// Helper so we can write `await sleep(1000)`
+async function sleep (ms) {
+  return new Promise((resolve) => {
+      setTimeout(resolve, ms)
+  })
+}
+
 // Status codes
 const STATUS_CODE = {
   OK: 0,
@@ -73,7 +80,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
-      elementsToRemove: []
+      elementsToRemove: [],
+      isDoneSwitching: false
     }
   })
 
@@ -101,19 +109,35 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     window.__TYPESET_CONFIG.elementsToRemove.push(meta)
   }, cssPath)
 
-  let res = await page.evaluate(() => {
+  let res = await page.evaluate(/* istanbul ignore next */ async() => {
     let mathMLElements = document.getElementsByTagName('m:math')
+    console.log(`Found ${mathMLElements.length} <m:math> elements`)
     let mathMLElementsMap = {}
-    for(let i = 0; i < mathMLElements.length; i++){
-      let divToReplaceMathML = document.createElement('div')
-      divToReplaceMathML.classList.add('mjnode-replace')
-      divToReplaceMathML.id = `mjnode-${i}`
-      mathMLElements[i].parentElement.prepend(divToReplaceMathML)
-      mathMLElementsMap[i] = mathMLElements[i].outerHTML
-      mathMLElements[0].remove()
-      console.log(`Removed ${i} element`)
+    let index = 0
+    // Length of mathMLElements is decreasing with every loop 
+    // because we are replacing <m:math> element with <span>
+    // so every other loop will process only half of elements.
+    // Array.isArray(mathMLElements) === false
+    while(mathMLElements.length){
+      mathMLElementsMap[index] = mathMLElements[mathMLElements.length - 1].outerHTML
+      mathMLElements[mathMLElements.length - 1].outerHTML = `<span id="mjnode-${index}" class="mjnode-replace"></span>`
+      console.log(`Switched ${index} element`)
+      index++
     }
-    console.log(`Found ${Object.keys(mathMLElementsMap).length} mathMLElements`)
+    /* Array.prototype.forEach.call(mathMLElements, (el, i) => {
+      mathMLElementsMap[i] = el.outerHTML
+      el.outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
+      console.log(`mathMLElements.length: ${mathMLElements.length}`)
+      console.log(`Switched ${i} element`)
+    }) */
+    /* for(let i = 0; i < mathMLElements.length; i++){
+      mathMLElementsMap[i] = mathMLElements[i].outerHTML
+      mathMLElements[i].outerHTML = `<span id="mjnode-${i}" class="mjnode-replace"></span>`
+      console.log(`Switched ${i} element`)
+    } */
+    console.log(`Found after ${mathMLElements.length} <m:math> elements`)
+
+    console.log(`All elements replaced with numbered span.`)
 
     console.log('Serializing content...')
     let s = new window.XMLSerializer()

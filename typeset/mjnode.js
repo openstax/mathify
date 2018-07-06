@@ -3,9 +3,9 @@ const  mjAPI = require("mathjax-node")
 // Helper so we can write `await sleep(1000)`
 async function sleep (ms) {
     return new Promise((resolve) => {
-      setTimeout(resolve, ms)
+        setTimeout(resolve, ms)
     })
-  }
+}
 
 const convertMathML = async (log, mathMLElementsMap) => {
     log.info('Setting config for MathJaxNode...')
