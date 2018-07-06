@@ -147,31 +147,23 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     }
   })
 
-  log.info('Saving temporary output file without MathML elements...')
-  await writeFile(output, serializedContent)
-
-  log.info('Starting mjnodeConverter...')
   const convertedMathML = await mjnodeConverter.convertMathML(log, new Map(mathEntries))
 
-  log.debug(`Opening ${output}...`)
-  log.info(`Opening temporary file`)
-  await page.goto(`file://${output}`)
-
   log.debug(`Opened ${output} file.`)
-  log.info(`Starting inserting converted math elements...`)
-  let convertedContent = await page.evaluate((convertedMathMLEntries) => {
+  log.info(`Inserting converted math elements...`)
+  let convertedContent = await page.evaluate(/* istanbul ignore next */(convertedMathMLEntries) => {
     const convertedMathML = new Map(convertedMathMLEntries)
     let fullLength = convertedMathML.size
     let prevPercent = 0
     let index = 0
     for(const [id, xml] of convertedMathML.entries()){
+      const percent = Math.round(100 * index / total)
       const mathHTML = xml
       const mathNode = document.getElementById(id)
       if (!mathNode) {
         throw new Error(`BUG: Could not find element with id="${id}"`)
       }
       mathNode.outerHTML = mathHTML
-      let percent = Math.round((fullLength - (fullLength - index)) / fullLength * 100)
       if (prevPercent !== percent && percent % 10 === 0){
           console.info(`Inserted ${percent}% of all elements...`)
           prevPercent = percent
@@ -180,8 +172,11 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     }
 
     console.log(`Inserted ${fullLength} elements`)
-    console.info(`Inserted all converted elements.`)
-    return document.documentElement.innerHTML
+    console.info('Serializing content...')
+    const s = new window.XMLSerializer()
+    const convertedContent = s.serializeToString(document)
+    return convertedContent
+
   }, [...convertedMathML.entries()])
 
   log.info('Saving file with injected math HTML elements...')
