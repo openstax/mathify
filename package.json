@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "start": "node ./typeset/start.js -- @*",
-    "start-debug": "node --inspect-brk ./typeset/start.js -- @*",
+    "start-debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js -- @*",
     "test": "jest && standard --fix",
     "watch": "jest --watch @*",
     "jest": "jest @*"
