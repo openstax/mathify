@@ -1,7 +1,7 @@
 const  mjAPI = require("mathjax-node")
 
 const convertMathML = async (log, mathMap) => {
-    log.info('Setting config for MathJaxNode...')
+    log.debug('Setting config for MathJaxNode...')
     mjAPI.config({
         displayMessages: false,    // determines whether Message.Set() calls are logged
         displayErrors:   true,     // determines whether error messages are shown on the console
@@ -11,42 +11,44 @@ const convertMathML = async (log, mathMap) => {
             // traditional MathJax configuration
         }
     })
-    log.info('Config is set.')
+    log.debug('Config is set. Starting mathjax-node service')
     mjAPI.start()
-    async function mjTypeset(source) {
-      return new Promise((resolve, reject) => {
-        mjAPI.typeset({
-          math: source,
-          format: "MathML", // "inline-TeX", "TeX", "MathML"
-          svg: true,      // svg:true, mml:true, html:true
-        }, ({errors, svg, html}) => {
-          if (errors) {
-            reject(errors)
-          } else {
-            resolve(svg || html) // Depending on which output format was chosen
-          }
-        })
-      })
-    }
 
     const total = mathMap.size
     log.debug(`There are ${total} elements to process...`)
-    log.info('Starting conversion of mapped mathML elements with mathjax-node...')
+    log.info('Starting conversion of mapped MathML elements with mathjax-node...')
     const convertedMathMLElements = new Map()
-    let prevPercent = 0
+    let prevTime = Date.now()
     let numDone = 0
-    const promises = [...mathMap.entries()].map(([id, xml]) => {
-        return mjTypeset(xml)
-        .then((converted) => {
-          numDone++
-          const percent = Math.floor(100 * numDone / total)
-          if (percent !== prevPercent) {
-            if (total > 100) {
-              log.info(`Typesetting Progress: ${percent}%`)
-            }
-            prevPercent = percent
+    const promises = [...mathMap.entries()].map(([id, mathSource]) => {
+        return mjAPI.typeset({
+          math: mathSource,
+          format: "MathML", // "inline-TeX", "TeX", "MathML"
+          svg: true,      // svg:true, mml:true, html:true
+          // html: true,
+          // css: true
+        })
+        .then((result) => {
+          const {errors, svg, css} = result
+          let {html} = result // later, remove &nbsp; since it is not valid XHTML
+          if (errors) {
+            log.fatal(errors)
+            throw new Error(`Problem converting using MathJax. id="${id}"`)
           }
-          convertedMathMLElements.set(id, converted)
+          numDone++
+
+          // Print progress every 10 seconds
+          const now = Date.now()
+          if (now - prevTime > 10 * 1000 /*10 seconds*/) {
+            const percent = Math.floor(100 * numDone / total)
+            log.info(`Typesetting Progress: ${percent}%`)
+            prevTime = now
+          }
+          // remove &nbsp; since it is not valid XHTML
+          if (html) {
+            html = html.replace(/&nbsp;/g, '&#160;')
+          }
+          convertedMathMLElements.set(id, {html, svg, css})
         })
     })
 

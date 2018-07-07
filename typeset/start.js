@@ -33,3 +33,7 @@ const pathToCss = argv.css ? path.resolve(argv.css) : null
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
 converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output)
+.catch(err => {
+  log.fatal(err)
+  process.exit(111)
+})
