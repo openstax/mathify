@@ -137,7 +137,6 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
         console.info(`Extraction Progress: ${percent}%`)
         prevTime = now
       }
-
       if (mathMap.has(id)) {
         throw new Error(`Duplicate id detected: "${id}"`)
       }
