@@ -1,4 +1,5 @@
 const fs = require('fs')
+const {createHash} = require('crypto')
 const fileExists = require('file-exists')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
@@ -74,7 +75,10 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
   log.debug(`Opened "${url}"`)
 
-  await page.evaluate(/* istanbul ignore next */() => {
+  // Collect code coverage of the browser JS
+  await injectCoverageCollection(page)
+
+  await page.evaluate(() => {
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
@@ -83,7 +87,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
 
   log.debug(`Injecting CSS...`)
-  await page.evaluate(/* istanbul ignore next */stylePath => {
+  await page.evaluate(stylePath => {
     if (stylePath) {
       console.log('Setting stylesheets...')
       const style = document.createElement('link')
@@ -108,7 +112,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
 
   // Typeset equations
   log.info(`Injecting MathJax (and typesetting)...`)
-  const didMathJaxLoad = await page.evaluate(/* istanbul ignore next */(mathJaxPath) => {
+  const didMathJaxLoad = await page.evaluate((mathJaxPath) => {
     console.log('Setting config for MathJax...')
     const MATHJAX_CONFIG = {
       extensions: ['mml2jax.js', 'MatchWebFonts.js'],
@@ -187,7 +191,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   log.info(`Polling to see when MathJax is done typesetting...`)
   let pageContentAfterSerialize = ''
   while (true) {
-    const {isFailed, isDone} = await page.evaluate(/* istanbul ignore next */() => {
+    const {isFailed, isDone} = await page.evaluate(() => {
       if (!window.MathJax) {
         console.error('MathJax was not loaded')
         return {isFailed: true}
@@ -212,7 +216,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
       return STATUS_CODE.ERROR
     } else if (isDone) {
       log.info('Serializing document...')
-      pageContentAfterSerialize = await page.evaluate(/* istanbul ignore next */() => {
+      pageContentAfterSerialize = await page.evaluate(() => {
         // Remove any elements we added
         window.__TYPESET_CONFIG.elementsToRemove.forEach(el => el.remove())
 
@@ -239,6 +243,47 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   await browser.close()
 
   return STATUS_CODE.OK
+}
+
+async function injectCoverageCollection (page) {
+  // From https://github.com/GoogleChrome/puppeteer/pull/1067/files
+  if (global.__coverage__) {
+    const coverageObjects = {}
+    Object.keys(global.__coverage__).forEach(filename => {
+      // The variable name of the coverage object is a hash of the filename
+      // Istanbul computes this so we need to compute it as well.
+      const hash = createHash('sha1')
+      hash.update(filename)
+      const key = parseInt(hash.digest('hex').substr(0, 12), 16).toString(36)
+      coverageObjects[key] = global.__coverage__[filename]
+    })
+    await page.exposeFunction('cv_proxy_add', /* istanbul ignore next */ async arr => {
+      arr = JSON.parse(arr)
+      let obj = coverageObjects
+      while (arr.length > 1) { obj = obj[arr.shift()] }
+      obj[arr.shift()]++
+    })
+    await page.evaluate(/* istanbul ignore next */ keys => {
+      const createProxy = parents => {
+        parents = parents.slice()
+        return new Proxy({}, {
+          get: (target, name) => 0,
+          set: (obj, prop, value) => {
+            const arr = parents.concat([prop])
+            window.cv_proxy_add(JSON.stringify(arr))
+            return true
+          }
+        })
+      }
+      keys.forEach(key => {
+        window[`cov_${key}`] = {
+          f: createProxy([key, 'f']),
+          s: createProxy([key, 's']),
+          b: createProxy([key, 'b'])
+        }
+      })
+    }, Object.keys(coverageObjects))
+  }
 }
 
 module.exports = {
