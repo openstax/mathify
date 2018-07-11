@@ -1,6 +1,6 @@
 const mjAPI = require('mathjax-node')
 
-const convertMathML = async (log, mathMap) => {
+const convertMathML = async (log, mathMap, outputFormat) => {
   log.debug('Setting config for MathJaxNode...')
   mjAPI.config({
     displayMessages: false, // determines whether Message.Set() calls are logged
@@ -51,9 +51,10 @@ const convertMathML = async (log, mathMap) => {
     return mjAPI.typeset({
       math: mathSource,
       format: 'MathML', // "inline-TeX", "TeX", "MathML"
-      svg: true // svg:true, mml:true, html:true
-      // html: true,
-      // css: true
+      svg: outputFormat === 'svg' ? true : false,
+      html: outputFormat === 'html' ? true : false,
+      css: outputFormat === 'html' ? true : false,
+      ex: 16
     })
       .then((result) => {
         const {errors, svg, css} = result

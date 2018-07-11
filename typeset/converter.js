@@ -15,7 +15,8 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) => {
+const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat) => {
+  let timeOfStart = new Date().getTime()
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
     log.error(`Input XHTML file not found: "${inputPath}"`)
@@ -139,7 +140,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
     return [...mathMap.entries()]
   }, PROGRESS_TIME)
 
-  const convertedMathML/*: Map<string, {svg, html, css}> */ = await mjnodeConverter.convertMathML(log, new Map(mathEntries))
+  const convertedMathML/*: Map<string, {svg, html, css}> */ = await mjnodeConverter.convertMathML(log, new Map(mathEntries), outputFormat)
 
   log.info(`Inserting converted math elements...`)
   const mathSources = [...convertedMathML.entries()]
@@ -204,6 +205,17 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath) =>
 
   await browser.close()
 
+  let timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
+  let timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0
+  let timeOfEnd = ''
+
+  if (timeOfEndInMin) {
+    timeOfEnd = `${timeOfEndInMin} minutes and ${timeOfEndInSec % 60} seconds.`
+  } else {
+    timeOfEnd = `${timeOfEndInSec} seconds.`
+  }
+
+  log.debug(`Script was running for: ${timeOfEnd}`)
   return STATUS_CODE.OK
 }
 
