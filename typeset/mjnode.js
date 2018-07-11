@@ -51,9 +51,9 @@ const convertMathML = async (log, mathMap, outputFormat) => {
     return mjAPI.typeset({
       math: mathSource,
       format: 'MathML', // "inline-TeX", "TeX", "MathML"
-      svg: outputFormat === 'svg' ? true : false,
-      html: outputFormat === 'html' ? true : false,
-      css: outputFormat === 'html' ? true : false,
+      svg: outputFormat === 'svg',
+      html: outputFormat === 'html',
+      css: outputFormat === 'html',
       ex: 16
     })
       .then((result) => {

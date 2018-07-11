@@ -15,28 +15,51 @@ const log = bunyan.createLogger({
 
 let pathToInput = path.resolve('./typeset/tests/seed/test.xhtml')
 let pathToCss = path.resolve('./typeset/tests/seed/test.css')
-let pathToOutput = path.resolve('./typeset/tests/test-output.html')
+let pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
+let pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
 
-if (fileExists.sync(pathToOutput)) {
-  fs.unlink(pathToOutput, (err) => {
-    if (err) throw err
-  })
-}
+beforeAll(() => {
+  if (fileExists.sync(pathToOutput)) {
+    fs.unlink(pathToOutput, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToOutputSVG)) {
+    fs.unlink(pathToOutputSVG, (err) => {
+      if (err) throw err
+    })
+  }
+})
+
+afterAll(() => {
+  if (fileExists.sync(pathToOutput)) {
+    fs.unlink(pathToOutput, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToOutputSVG)) {
+    fs.unlink(pathToOutputSVG, (err) => {
+      if (err) throw err
+    })
+  }
+})
 
 test('Fail if user provide wrong path for input file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput)
+  let res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html')
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Fail if user provide wrong path for css file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput)
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html')
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
-test('Success if converter finished without errors.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput)
+test('Success if converter finished without errors FORMAT HTML.', async (done) => {
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html')
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
     isOutputFile = true
@@ -46,13 +69,54 @@ test('Success if converter finished without errors.', async (done) => {
   done()
 }, 30000)
 
-test('Check if there are svgs instead mathML elements.', async (done) => {
+test('Success if converter finished without errors FORMAT SVG.', async (done) => {
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg')
+  let isOutputFile = false
+  if (fileExists.sync(pathToOutputSVG)) {
+    isOutputFile = true
+  }
+  expect(res).toBe(converter.STATUS_CODE.OK)
+  expect(isOutputFile).toBeTruthy()
+  done()
+}, 30000)
+
+test('Check if there are MathJaxNode classes instead mathML elements.', async (done) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
     devtools: process.env.BROWSER_DEBUGGER === 'true'
   })
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutput}`)
+  let res = await page.evaluate(/* istanbul ignore next */() => {
+    let res = {
+      mjNodeClasses: 0,
+      mathMLElements: 0
+    }
+    // Search for converted MathJax elements
+    res.mjNodeClasses = document.getElementsByClassName('MJXc-display').length
+    // Search for different types of MathML elements
+    res.mathMLElements += document.getElementsByTagName('m:math').length
+    res.mathMLElements += document.getElementsByTagName('math').length
+    res.mathMLElements += document.getElementsByTagName('m:semantics').length
+    res.mathMLElements += document.getElementsByTagName('semantics').length
+    res.mathMLElements += document.getElementsByTagName('m:mrow').length
+    res.mathMLElements += document.getElementsByTagName('mrow').length
+    return res
+  })
+  await browser.close()
+
+  expect(res.mjNodeClasses).toBeGreaterThan(0)
+  expect(res.mathMLElements).toEqual(0)
+  done()
+}, 30000)
+
+test('Check if there are SVGs instead mathML elements.', async (done) => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    devtools: process.env.BROWSER_DEBUGGER === 'true'
+  })
+  const page = await browser.newPage()
+  await page.goto(`file://${pathToOutputSVG}`)
   let res = await page.evaluate(/* istanbul ignore next */() => {
     let res = {
       svgs: 0,
