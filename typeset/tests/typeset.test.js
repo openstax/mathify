@@ -95,12 +95,7 @@ test('Check if there are MathJaxNode classes instead mathML elements.', async (d
     // Search for converted MathJax elements
     res.mjNodeClasses = document.getElementsByClassName('MJXc-display').length
     // Search for different types of MathML elements
-    res.mathMLElements += document.getElementsByTagName('m:math').length
-    res.mathMLElements += document.getElementsByTagName('math').length
-    res.mathMLElements += document.getElementsByTagName('m:semantics').length
-    res.mathMLElements += document.getElementsByTagName('semantics').length
-    res.mathMLElements += document.getElementsByTagName('m:mrow').length
-    res.mathMLElements += document.getElementsByTagName('mrow').length
+    res.mathMLElements += document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math').length
     return res
   })
   await browser.close()
@@ -125,12 +120,7 @@ test('Check if there are SVGs instead mathML elements.', async (done) => {
     // Search for converted MathJax elements
     res.svgs = document.getElementsByTagName('svg').length
     // Search for different types of MathML elements
-    res.mathMLElements += document.getElementsByTagName('m:math').length
-    res.mathMLElements += document.getElementsByTagName('math').length
-    res.mathMLElements += document.getElementsByTagName('m:semantics').length
-    res.mathMLElements += document.getElementsByTagName('semantics').length
-    res.mathMLElements += document.getElementsByTagName('m:mrow').length
-    res.mathMLElements += document.getElementsByTagName('mrow').length
+    res.mathMLElements += document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math').length
     return res
   })
   await browser.close()

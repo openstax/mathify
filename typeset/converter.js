@@ -107,8 +107,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   }, cssPath)
 
   const mathEntries = await page.evaluate(/* istanbul ignore next */(PROGRESS_TIME) => {
-    const mathNodes = document.getElementsByTagName('m:math')
-    console.log(`Found ${mathNodes.length} <m:math> elements`)
+    const mathNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
+    console.log(`Found ${mathNodes.length} MathML elements`)
     console.info('Extracting MathML elements from the document...')
     const total = mathNodes.length
     const mathMap/*: Map<string, string> */ = new Map()
