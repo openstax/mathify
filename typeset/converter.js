@@ -38,6 +38,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   const page = await browser.newPage()
 
+  const browserLog = log.child({browser: 'console'})
   page.on('console', msg => {
     switch (msg.type()) {
       case 'error':
@@ -45,20 +46,20 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
         const text = msg.text()
         if (text !== 'Failed to load resource: net::ERR_FILE_NOT_FOUND') {
-          log.error('browser-console', msg.text())
+          browserLog.error(msg.text())
         }
         break
       case 'warning':
-        log.warn('browser-console', msg.text())
+        browserLog.warn(msg.text())
         break
       case 'info':
-        log.info('browser-console', msg.text())
+        browserLog.info(msg.text())
         break
       case 'log':
-        log.debug('browser-console', msg.text())
+        browserLog.debug(msg.text())
         break
       default:
-        log.error('browser-console', msg.type(), msg.text())
+        browserLog.error(msg.type(), msg.text())
         break
     }
   })
