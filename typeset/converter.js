@@ -86,40 +86,24 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     }
   })
 
-  log.debug(`Injecting CSS...`)
-  await page.evaluate(cssPath => {
-    if (cssPath) {
-      console.log('Setting stylesheets...')
-      const style = document.createElement('link')
-      style.rel = 'stylesheet'
-      style.href = cssPath
-      document.body.appendChild(style)
-      window.__TYPESET_CONFIG.elementsToRemove.push(style)
-    } else {
-      console.warn('No CSS file provided')
-    }
-
-    console.log('Setting metadata...')
-    if (!document.head) {
-      const head = document.createElement('head')
-      document.documentElement.insertBefore(head, document.body)
-    }
-    const meta = document.createElement('meta')
-    meta.setAttribute('charset', 'utf-8')
-    document.head.appendChild(meta)
-    window.__TYPESET_CONFIG.elementsToRemove.push(meta)
-  }, cssPath)
+  if (cssPath) {
+    log.info(`Injecting CSS...`)
+    await page.mainFrame().addStyleTag({
+      path: cssPath
+    })
+  }
 
   const mathEntries = await page.evaluate((PROGRESS_TIME) => {
     const mathNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
     console.log(`Found ${mathNodes.length} MathML elements`)
     console.info('Extracting MathML elements from the document...')
     const total = mathNodes.length
-    const mathMap/*: Map<string, string> */ = new Map()
+    const mathMap/*: Map<string, {xml: string, fontSize: number}> */ = new Map()
     let prevTime = Date.now()
     let index = 0
     for (const mathNode of mathNodes) {
       const xml = mathNode.outerHTML
+      const fontSize = parseFloat(window.getComputedStyle(mathNode.parentElement, null).getPropertyValue('font-size'))
       // only set an ID if one does not already exist
       if (!mathNode.getAttribute('id')) {
         mathNode.setAttribute('id', `mjnode-${index}`)
@@ -138,7 +122,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
       if (mathMap.has(id)) {
         throw new Error(`Duplicate id detected: "${id}"`)
       }
-      mathMap.set(id, xml)
+      mathMap.set(id, {xml, fontSize})
       index++
     }
     return [...mathMap.entries()]
@@ -149,7 +133,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   log.info(`Inserting converted math elements...`)
   const mathSources = [...convertedMathML.entries()]
     .map(([id, {svg, html}]) => [id, svg || html])
-  await page.evaluate(/* istanbul ignore next */(convertedMathMLEntries, PROGRESS_TIME) => {
+  await page.evaluate((convertedMathMLEntries, PROGRESS_TIME) => {
     const total = convertedMathMLEntries.length
     let prevTime = Date.now()
     let index = 0
@@ -186,7 +170,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   const allUniqueCss = new Set(allCssMaybeDuplicate)
   log.info(`Injecting MathJax-created CSS...`)
-  await page.evaluate(/* istanbul ignore next */(allCss) => {
+  await page.evaluate((allCss) => {
     console.info('Adding MathJax-created CSS')
     const head = document.querySelector('head')
     const style = document.createElement('style')
@@ -195,7 +179,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   }, [...allUniqueCss.values()])
 
   log.info(`Serializing XHTML back out...`)
-  let convertedContent = await page.evaluate(/* istanbul ignore next */() => {
+  let convertedContent = await page.evaluate(() => {
     console.log('Serializing content...')
     const s = new window.XMLSerializer()
     const convertedContent = s.serializeToString(document)

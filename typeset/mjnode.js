@@ -1,6 +1,6 @@
 const mjAPI = require('mathjax-node')
 
-const convertMathML = async (log, mathMap, outputFormat) => {
+const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat) => {
   log.debug('Setting config for MathJaxNode...')
   mjAPI.config({
     displayMessages: false, // determines whether Message.Set() calls are logged
@@ -47,14 +47,14 @@ const convertMathML = async (log, mathMap, outputFormat) => {
   const convertedMathMLElements = new Map()
   let prevTime = Date.now()
   let numDone = 0
-  const promises = [...mathMap.entries()].map(([id, mathSource]) => {
+  const promises = [...mathMap.entries()].map(([id, {xml: mathSource, fontSize}]) => {
     return mjAPI.typeset({
       math: mathSource,
       format: 'MathML', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
       css: outputFormat === 'html',
-      ex: 16
+      ex: fontSize
     })
       .then((result) => {
         const {errors, svg, css} = result
