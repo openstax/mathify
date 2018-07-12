@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const {createHash} = require('crypto')
 const fileExists = require('file-exists')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
@@ -73,7 +74,10 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   log.debug(`Opened "${url}"`)
 
-  await page.evaluate(/* istanbul ignore next */() => {
+  // Collect code coverage of the browser JS
+  await injectCoverageCollection(page)
+
+  await page.evaluate(() => {
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
@@ -83,7 +87,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
 
   log.debug(`Injecting CSS...`)
-  await page.evaluate(/* istanbul ignore next */cssPath => {
+  await page.evaluate(cssPath => {
     if (cssPath) {
       console.log('Setting stylesheets...')
       const style = document.createElement('link')
@@ -106,7 +110,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     window.__TYPESET_CONFIG.elementsToRemove.push(meta)
   }, cssPath)
 
-  const mathEntries = await page.evaluate(/* istanbul ignore next */(PROGRESS_TIME) => {
+  const mathEntries = await page.evaluate((PROGRESS_TIME) => {
     const mathNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
     console.log(`Found ${mathNodes.length} MathML elements`)
     console.info('Extracting MathML elements from the document...')
@@ -217,6 +221,47 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   log.debug(`Script was running for: ${timeOfEnd}`)
   return STATUS_CODE.OK
+}
+
+async function injectCoverageCollection (page) {
+  // From https://github.com/GoogleChrome/puppeteer/pull/1067/files
+  if (global.__coverage__) {
+    const coverageObjects = {}
+    Object.keys(global.__coverage__).forEach(filename => {
+      // The variable name of the coverage object is a hash of the filename
+      // Istanbul computes this so we need to compute it as well.
+      const hash = createHash('sha1')
+      hash.update(filename)
+      const key = parseInt(hash.digest('hex').substr(0, 12), 16).toString(36)
+      coverageObjects[key] = global.__coverage__[filename]
+    })
+    await page.exposeFunction('cv_proxy_add', /* istanbul ignore next */ async arr => {
+      arr = JSON.parse(arr)
+      let obj = coverageObjects
+      while (arr.length > 1) { obj = obj[arr.shift()] }
+      obj[arr.shift()]++
+    })
+    await page.evaluate(/* istanbul ignore next */ keys => {
+      const createProxy = parents => {
+        parents = parents.slice()
+        return new Proxy({}, {
+          get: (target, name) => 0,
+          set: (obj, prop, value) => {
+            const arr = parents.concat([prop])
+            window.cv_proxy_add(JSON.stringify(arr))
+            return true
+          }
+        })
+      }
+      keys.forEach(key => {
+        window[`cov_${key}`] = {
+          f: createProxy([key, 'f']),
+          s: createProxy([key, 's']),
+          b: createProxy([key, 'b'])
+        }
+      })
+    }, Object.keys(coverageObjects))
+  }
 }
 
 module.exports = {
