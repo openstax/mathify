@@ -104,7 +104,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     let index = 0
     for (const mathNode of mathNodes) {
       const xml = mathNode.outerHTML
-      const fontSize = parseFloat(window.getComputedStyle(mathNode.parentElement, null).getPropertyValue('font-size'))
+      const fontSize = parseFloat(window.getComputedStyle(mathNode, null).getPropertyValue('font-size'))
       // only set an ID if one does not already exist
       if (!mathNode.getAttribute('id')) {
         mathNode.setAttribute('id', `mjnode-${index}`)

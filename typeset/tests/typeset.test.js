@@ -93,7 +93,7 @@ test('Check if there are MathJaxNode classes instead mathML elements.', async (d
       mathMLElements: 0
     }
     // Search for converted MathJax elements
-    res.mjNodeClasses = document.getElementsByClassName('MJXc-display').length
+    res.mjNodeClasses = document.getElementsByClassName('mjx-chtml').length
     // Search for different types of MathML elements
     res.mathMLElements += document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math').length
     return res
