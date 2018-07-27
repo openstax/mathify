@@ -17,6 +17,8 @@ let pathToInput = path.resolve('./typeset/tests/seed/test.xhtml')
 let pathToCss = path.resolve('./typeset/tests/seed/test.css')
 let pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
 let pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
+let pathToInputLatex = path.resolve('./typeset/tests/seed/test-latex.xhtml')
+let pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml')
 
 beforeAll(() => {
   if (fileExists.sync(pathToOutput)) {
@@ -27,6 +29,12 @@ beforeAll(() => {
 
   if (fileExists.sync(pathToOutputSVG)) {
     fs.unlink(pathToOutputSVG, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToOutputLatex)) {
+    fs.unlink(pathToOutputLatex, (err) => {
       if (err) throw err
     })
   }
@@ -41,6 +49,12 @@ afterAll(() => {
 
   if (fileExists.sync(pathToOutputSVG)) {
     fs.unlink(pathToOutputSVG, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToOutputLatex)) {
+    fs.unlink(pathToOutputLatex, (err) => {
       if (err) throw err
     })
   }
@@ -73,6 +87,17 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
   let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg')
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
+    isOutputFile = true
+  }
+  expect(res).toBe(converter.STATUS_CODE.OK)
+  expect(isOutputFile).toBeTruthy()
+  done()
+}, 30000)
+
+test('Success if convertered LaTeX functions with success.', async (done) => {
+  let res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html')
+  let isOutputFile = false
+  if (fileExists.sync(pathToOutputLatex)) {
     isOutputFile = true
   }
   expect(res).toBe(converter.STATUS_CODE.OK)
@@ -127,5 +152,30 @@ test('Check if there are SVGs instead mathML elements.', async (done) => {
 
   expect(res.svgs).toBeGreaterThan(0)
   expect(res.mathMLElements).toEqual(0)
+  done()
+}, 30000)
+
+test('Check if LaTeX functions was converted correctly.', async (done) => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    devtools: process.env.BROWSER_DEBUGGER === 'true'
+  })
+  const page = await browser.newPage()
+  await page.goto(`file://${pathToOutputLatex}`)
+  let res = await page.evaluate(/* istanbul ignore next */() => {
+    let res = {
+      dataMath: 0,
+      mjNodeClasses: 0
+    }
+    // Search for converted MathJax elements
+    res.dataMath = document.querySelectorAll('[data-math]').length
+    // Search for different types of MathML elements
+    res.mjNodeClasses += document.getElementsByClassName('mjx-chtml').length
+    res.html = document.getElementsByTagName('body')[0].innerHTML
+    return res
+  })
+  await browser.close()
+  expect(res.mjNodeClasses).toBeGreaterThan(0)
+  expect(res.dataMath).toEqual(0)
   done()
 }, 30000)

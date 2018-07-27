@@ -95,15 +95,17 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   }
 
   const mathEntries = await page.evaluate((PROGRESS_TIME) => {
-    const mathNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
-    console.log(`Found ${mathNodes.length} MathML elements`)
-    console.info('Extracting MathML elements from the document...')
+    const mathMLNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
+    const latexNodes = document.querySelectorAll('[data-math]')
+    console.log(`Found ${mathMLNodes.length} MathML elements and ${latexNodes.length} LaTeX functions`)
+    console.info('Extracting MathML and LaTeX elements from the document...')
+    const mathNodes = [...mathMLNodes, ...latexNodes]
     const total = mathNodes.length
     const mathMap/*: Map<string, {xml: string, fontSize: number}> */ = new Map()
     let prevTime = Date.now()
     let index = 0
     for (const mathNode of mathNodes) {
-      const xml = mathNode.outerHTML
+      const xml = mathNode.getAttribute('data-math') ? mathNode.getAttribute('data-math') : mathNode.outerHTML
       const fontSize = parseFloat(window.getComputedStyle(mathNode, null).getPropertyValue('font-size'))
       // only set an ID if one does not already exist
       if (!mathNode.getAttribute('id')) {

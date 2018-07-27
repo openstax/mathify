@@ -50,7 +50,7 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
   const promises = [...mathMap.entries()].map(([id, {xml: mathSource, fontSize}]) => {
     return mjAPI.typeset({
       math: mathSource,
-      format: 'MathML', // "inline-TeX", "TeX", "MathML"
+      format: mathSource[0] !== '\\' ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
       css: outputFormat === 'html',
