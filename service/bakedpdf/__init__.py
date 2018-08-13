@@ -1,1 +1,1 @@
-from .connection import Message
+from .connection import Connection, Message

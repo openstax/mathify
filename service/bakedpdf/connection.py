@@ -1,11 +1,13 @@
 """Handling of AMQP connections"""
 
 import json
+import pika
 
 from .util import typecheck
 
 
 __all__ = (
+    'Connection',
     'Message',
 )
 
@@ -43,3 +45,25 @@ class Message:
         return json.dumps({
             'source': self.source,
         })
+
+
+class Connection:
+    """Wrapper around an AMQP connection, a channel, and a queue"""
+
+    def __init__(self, *, host, port, queue):
+        params = pika.ConnectionParameters(host, port)
+        self.connection = pika.BlockingConnection(params)
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=queue)
+        self.channel.confirm_delivery()
+        self.queue = queue
+
+    def __enter__(self, *args):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def close(self):
+        """Close the connection"""
+        self.connection.close()

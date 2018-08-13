@@ -9,6 +9,9 @@ setup(
             'baked-pdf = bakedpdf.__main__:main',
         ],
     },
+    install_requires=(
+        'pika >= 0.11.0',
+    ),
     setup_requires=(
         'pytest-runner',
     ),
