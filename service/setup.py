@@ -11,6 +11,7 @@ setup(
     },
     install_requires=(
         'pika >= 0.11.0',
+        'pyyaml >= 3.0.0',
     ),
     setup_requires=(
         'pytest-runner',
