@@ -67,3 +67,24 @@ class Connection:
     def close(self):
         """Close the connection"""
         self.connection.close()
+
+    def listen(self):
+        """Listen for incoming messages"""
+        try:
+            for method, props, body in self.channel.consume(self.queue):
+                try:
+                    message = Message.decode(body)
+                except MessageDecodeError:
+                    # Omitting reject=False will cause RabbitMQ to put
+                    # the message _at the front_ of the queue, which means
+                    # it will instantly be re-delivered to us, causing us to
+                    # spin forever rejecting the same message.
+                    self.channel.basic_reject(method.delivery_tag, requeue=False)
+                    continue
+
+                yield message
+
+                self.channel.basic_ack(method.delivery_tag)
+
+        finally:
+            pass
