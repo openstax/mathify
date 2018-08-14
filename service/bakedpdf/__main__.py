@@ -1,4 +1,6 @@
 import argparse
+import logging
+import os
 import toml
 from typing import Callable, Mapping
 
@@ -38,6 +40,9 @@ def main():
     enqueue.add_argument('SOURCE', help="URL pointing at the source BakedHTML file")
 
     args = argp.parse_args()
+
+    log_level = os.environ.get('LOG_LEVEL', 'warning').upper()
+    logging.basicConfig(level=getattr(logging, log_level, None))
 
     if args.config:
         raise NotImplementedError()

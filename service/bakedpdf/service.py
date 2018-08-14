@@ -1,6 +1,11 @@
+import logging
+
 from .config import Config
 from .connection import Connection, Message
 from .executor import Plan
+
+
+log = logging.getLogger(__name__)
 
 
 def connect(config: Config) -> Connection:
@@ -35,5 +40,7 @@ class Service:
 
     def spin(self):
         with connect(self.config) as connection:
+            log.info('Ready to accept messages')
             for message in connection.listen():
+                log.info('Received message: %s', message)
                 self.process(message)

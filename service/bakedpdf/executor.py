@@ -1,8 +1,18 @@
 import io
+import logging
 import shlex
 import subprocess
 import yaml
 from typing import List
+
+
+__all__ = (
+    'Plan',
+)
+
+
+log = logging.getLogger(__name__)
+
 
 class Plan:
     """Execution plan; an ordered list of steps"""
@@ -64,6 +74,7 @@ class Executor:
 
     def start(self):
         """Start execution of a plan with current settings"""
+        log.info('Began execution of %s', self.plan)
         for step in self.plan:
             self.step(step)
 

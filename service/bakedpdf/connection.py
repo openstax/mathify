@@ -1,6 +1,7 @@
 """Handling of AMQP connections"""
 
 import json
+import logging
 import pika
 
 from .util import typecheck
@@ -10,6 +11,9 @@ __all__ = (
     'Connection',
     'Message',
 )
+
+
+log = logging.getLogger(__name__)
 
 
 class MessageDecodeError(Exception):
@@ -80,6 +84,7 @@ class Connection:
                     # it will instantly be re-delivered to us, causing us to
                     # spin forever rejecting the same message.
                     self.channel.basic_reject(method.delivery_tag, requeue=False)
+                    log.exception('Invalid message received')
                     continue
 
                 yield message
