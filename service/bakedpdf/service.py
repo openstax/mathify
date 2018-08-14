@@ -8,6 +8,11 @@ def connect(config: Config) -> Connection:
     return Connection(host=c.host, port=c.port, queue=c.queue)
 
 
+def start(config: Config):
+    """Start rendering service"""
+    Service(config).spin()
+
+
 class Service:
     def __init__(self, config: Config):
         self.config = config

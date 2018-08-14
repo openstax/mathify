@@ -2,7 +2,15 @@ import argparse
 import toml
 from typing import Callable, Mapping
 
+from . import service
 from .config import Config
+
+
+def start(config, args):
+    try:
+        service.start(config)
+    except KeyboardInterrupt:
+        pass
 
 
 Command = Callable[[Config, Mapping], None]
@@ -19,6 +27,9 @@ def main():
     argp = argparse.ArgumentParser()
     argp.add_argument('-c', '--config', help="Load configuration file")
     cmds = argp.add_subparsers(title='subcommands', dest='command')
+
+    start = cmds.add_parser('start', help="Start rendering service")
+
     args = argp.parse_args()
 
     if args.config:
