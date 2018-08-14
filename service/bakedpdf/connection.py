@@ -88,3 +88,7 @@ class Connection:
 
         finally:
             pass
+
+    def send(self, message: Message):
+        """Send a single message"""
+        self.channel.basic_publish('', self.queue, message.encode())

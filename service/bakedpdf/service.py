@@ -8,6 +8,13 @@ def connect(config: Config) -> Connection:
     return Connection(host=c.host, port=c.port, queue=c.queue)
 
 
+def enqueue(config: Config, *, source: str):
+    """Enqueue a job"""
+    with connect(config) as connection:
+        message = Message(source=source)
+        connection.send(message)
+
+
 def start(config: Config):
     """Start rendering service"""
     Service(config).spin()

@@ -6,6 +6,10 @@ from . import service
 from .config import Config
 
 
+def enqueue(config, args):
+    service.enqueue(config, source=args.SOURCE)
+
+
 def start(config, args):
     try:
         service.start(config)
@@ -29,6 +33,9 @@ def main():
     cmds = argp.add_subparsers(title='subcommands', dest='command')
 
     start = cmds.add_parser('start', help="Start rendering service")
+
+    enqueue = cmds.add_parser('enqueue', help="Enqueue a job to be processed")
+    enqueue.add_argument('SOURCE', help="URL pointing at the source BakedHTML file")
 
     args = argp.parse_args()
 
