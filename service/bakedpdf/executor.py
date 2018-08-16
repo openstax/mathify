@@ -42,9 +42,9 @@ class Plan:
     def __iter__(self):
         return iter(self.steps)
 
-    def execute(self):
+    def execute(self, *, log=None):
         """Execute this plan"""
-        return Executor(self).start()
+        return Executor(self, log=log).start()
 
 
 def expand_env(command: List[str], env) -> List[str]:
@@ -66,25 +66,45 @@ def expand_env(command: List[str], env) -> List[str]:
     return list(map(replace, command))
 
 
+class ExecutionError(Exception):
+    """Command did not complete successfully."""
+    def __init__(self, code, command):
+        super().__init__("Command returned {}: {}".format(
+            code,
+            ' '.join(map(shlex.quote, command)),
+        ))
+
+
 class Executor:
-    def __init__(self, plan: Plan):
+    def __init__(self, plan: Plan, *, log=None):
         self.plan = plan
         # TODO: what needs to be in env?
         self.env = {}
+        self.log = log
+        """File to log output to. When ``None`` output will not be captured."""
 
     def start(self):
         """Start execution of a plan with current settings"""
-        log.info('Began execution of %s', self.plan)
         for step in self.plan:
             self.step(step)
 
     def step(self, step):
         """Process a single step of a plan"""
         command = expand_env(step, self.env)
+
+        if self.log:
+            out, err = self.log, subprocess.STDOUT
+        else:
+            out, err = None, None
+
         p = subprocess.Popen(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=out,
+            stderr=err,
             env=self.env,
         )
-        out, err = p.communicate()
+
+        code = p.wait()
+
+        if code != 0:
+            raise ExecutionError(code, command)

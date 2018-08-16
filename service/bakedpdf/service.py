@@ -1,4 +1,7 @@
 import logging
+import os
+import shutil
+import tempfile
 
 from .config import Config
 from .connection import Connection, Message
@@ -32,11 +35,20 @@ class Service:
 
     def process(self, message: Message):
         """Process a single message"""
-        # TODO: prepare a temp directory for worker
+        tmp = tempfile.mkdtemp()
+
         # TODO: acquire input
         # TODO: pass input to plan
-        self.plan.execute()
-        # TODO: handle exceptions
+        try:
+            logpath = os.path.join(tmp, 'output')
+            with open(logpath, 'w') as logfile:
+                self.plan.execute(log=logfile)
+        except Exception:
+            log.exception('Failure executing a job, log available at %s', logpath)
+        else:
+            # If there were no exceptions there's no need to preserve
+            # log files.
+            shutil.rmtree(tmp)
 
     def spin(self):
         with connect(self.config) as connection:
