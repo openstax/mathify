@@ -32,5 +32,9 @@ const argv = yargs
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
 
+if (! /\.xhtml$/.test(pathToInput)) {
+  throw new Error(`The input file must end in .xhtml so Chrome parses it as XML (strict) rather than HTML`)
+}
+
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
 converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath)
