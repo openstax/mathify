@@ -2,8 +2,8 @@
   "name": "typeset",
   "version": "0.0.1",
   "scripts": {
-    "start": "node ./typeset/start.js",
-    "start-debug": "node --inspect-brk ./typeset/start.js",
+    "start": "node ./typeset/start.js @*",
+    "start-debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
     "test": "jest && standard --fix",
     "watch": "jest --watch",
     "jest": "jest"
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.1.2",
-    "jest": "^23.2.0",
+    "jest": "^21.2.1",
     "standard": "^11.0.1"
   },
   "jest": {

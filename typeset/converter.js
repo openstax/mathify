@@ -1,16 +1,14 @@
+const path = require('path')
 const fs = require('fs')
 const {createHash} = require('crypto')
 const fileExists = require('file-exists')
 const pify = require('pify')
 const puppeteer = require('puppeteer')
 const writeFile = pify(fs.writeFile)
+const mjnodeConverter = require('./mjnode')
 
-// Helper so we can write `await sleep(1000)`
-async function sleep (ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
+const PAGE_LOAD_TIME = 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
+const PROGRESS_TIME = 10 * 1000 // 10 seconds
 
 // Status codes
 const STATUS_CODE = {
@@ -18,7 +16,8 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) => {
+const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat) => {
+  let timeOfStart = new Date().getTime()
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
     log.error(`Input XHTML file not found: "${inputPath}"`)
@@ -30,7 +29,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   }
 
   const url = `file://${inputPath}`
-  const output = `${outputPath}`
+  const output = path.resolve(outputPath)
 
   log.debug('Starting puppeteer...')
   const browser = await puppeteer.launch({
@@ -39,6 +38,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   })
   const page = await browser.newPage()
 
+  const browserLog = log.child({browser: 'console'})
   page.on('console', msg => {
     switch (msg.type()) {
       case 'error':
@@ -46,20 +46,20 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
         // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
         const text = msg.text()
         if (text !== 'Failed to load resource: net::ERR_FILE_NOT_FOUND') {
-          log.error('browser-console', msg.text())
+          browserLog.error(msg.text())
         }
         break
       case 'warning':
-        log.warn('browser-console', msg.text())
+        browserLog.warn(msg.text())
         break
       case 'info':
-        log.info('browser-console', msg.text())
+        browserLog.info(msg.text())
         break
       case 'log':
-        log.debug('browser-console', msg.text())
+        browserLog.debug(msg.text())
         break
       default:
-        log.error('browser-console', msg.type(), msg.text())
+        browserLog.error(msg.type(), msg.text())
         break
     }
   })
@@ -71,7 +71,7 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
   log.info(`Opening XHTML file (may take a few minutes)`)
   log.debug(`Opening "${url}"`)
   await page.goto(url, {
-    timeout: 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
+    timeout: PAGE_LOAD_TIME
   })
   log.debug(`Opened "${url}"`)
 
@@ -82,166 +82,131 @@ const injectMathJax = async (log, inputPath, cssPath, outputPath, mathJaxPath) =
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
-      elementsToRemove: []
+      elementsToRemove: [],
+      isDoneSwitching: false
     }
   })
 
-  log.debug(`Injecting CSS...`)
-  await page.evaluate(stylePath => {
-    if (stylePath) {
-      console.log('Setting stylesheets...')
-      const style = document.createElement('link')
-      style.rel = 'stylesheet'
-      style.href = stylePath
-      document.body.appendChild(style)
-      window.__TYPESET_CONFIG.elementsToRemove.push(style)
-    } else {
-      console.warn('No CSS file provided')
-    }
-
-    console.log('Setting metadata...')
-    if (!document.head) {
-      const head = document.createElement('head')
-      document.documentElement.insertBefore(head, document.body)
-    }
-    const meta = document.createElement('meta')
-    meta.setAttribute('charset', 'utf-8')
-    document.head.appendChild(meta)
-    window.__TYPESET_CONFIG.elementsToRemove.push(meta)
-  }, cssPath)
-
-  // Typeset equations
-  log.info(`Injecting MathJax (and typesetting)...`)
-  const didMathJaxLoad = await page.evaluate((mathJaxPath) => {
-    console.log('Setting config for MathJax...')
-    const MATHJAX_CONFIG = {
-      extensions: ['mml2jax.js', 'MatchWebFonts.js'],
-      jax: ['input/MathML', 'output/HTML-CSS'],
-      showMathMenu: false,
-      showMathMenuMSIE: false,
-      mml2jax: {
-        preview: 'none'
-      },
-      'AssistiveMML': {
-        // AssistiveMML inserts additional MathML into the page, which
-        // prince then rejects.
-        disabled: true
-      },
-      MatchWebFonts: {
-        matchFor: {
-          CommonHTML: true,
-          'HTML-CSS': true,
-          SVG: true
-        },
-        fontCheckDelay: 2000,
-        fontCheckTimeout: 30 * 1000
-      },
-      CommonHTML: {
-        linebreaks: {
-          automatic: true
-        },
-        scale: 100 / 1.27,
-        minScaleAdjust: 75
-        // mtextFontInherit: true,
-      },
-      'HTML-CSS': {
-        preferredFont: 'STIX-Web',
-        imageFont: null,
-        // mtextFontInherit: true,
-        noReflows: false
-      },
-      SVG: {
-        font: 'STIX-Web'
-        // mtextFontInherit: true,
-      }
-    }
-
-    // Wait until the script has loaded and then return if it was successful or not
-    return new Promise((resolve, reject) => {
-      function typeset () {
-        console.log('Begin typesetting...')
-        window.MathJax.Hub.Queue(function () {
-          document.querySelector('body>:first-child').style.setProperty('display', 'none')
-          window.__TYPESET_CONFIG.isDone = true
-        })
-        window.MathJax.Hub.setRenderer('HTML-CSS')
-        window.MathJax.Hub.Config(MATHJAX_CONFIG)
-        resolve(true)
-      };
-
-      const mjax = document.createElement('script')
-      mjax.addEventListener('load', typeset)
-      mjax.addEventListener('error', function (ev) {
-        window.__TYPESET_CONFIG.isFailed = true
-        console.error('Unable to load MathJax. NOTE: MathJax needs to be in the same directory (or a child) of the XHTML file')
-        reject(new Error('Unable to load MathJax.'))
-      })
-      console.log(`Attempting to inject MathJax from "${mathJaxPath}"`)
-      mjax.src = mathJaxPath
-      document.body.appendChild(mjax)
+  if (cssPath) {
+    log.info(`Injecting CSS...`)
+    await page.mainFrame().addStyleTag({
+      path: cssPath
     })
-  }, mathJaxPath)
-
-  if (!didMathJaxLoad) {
-    log.fatal('MathJax did not load')
-    return STATUS_CODE.ERROR
-  }
-  await sleep(1000) // wait for MathJax to load
-
-  log.info(`Polling to see when MathJax is done typesetting...`)
-  let pageContentAfterSerialize = ''
-  while (true) {
-    const {isFailed, isDone} = await page.evaluate(() => {
-      if (!window.MathJax) {
-        console.error('MathJax was not loaded')
-        return {isFailed: true}
-      }
-      let msg = document.getElementById('MathJax_Message')
-      if (msg && msg.innerText !== '') {
-        const newMessage = `Progress: "${document.getElementById('MathJax_Message').innerText}"`
-        // Do not emit to the log every second if the message did not change
-        if (newMessage !== window.__TYPESET_CONFIG.previousMessage) {
-          console.info(newMessage)
-          window.__TYPESET_CONFIG.previousMessage = newMessage
-        }
-      }
-      return {
-        isDone: window.__TYPESET_CONFIG.isDone,
-        isFailed: window.__TYPESET_CONFIG.isFailed
-      }
-    })
-    if (isFailed) {
-      log.fatal('Failed for some reason. Check logs')
-      await browser.close()
-      return STATUS_CODE.ERROR
-    } else if (isDone) {
-      log.info('Serializing document...')
-      pageContentAfterSerialize = await page.evaluate(() => {
-        // Remove any elements we added
-        window.__TYPESET_CONFIG.elementsToRemove.forEach(el => el.remove())
-
-        let s = new window.XMLSerializer()
-        let str = s.serializeToString(document)
-        if (window.MathJax && window.MathJax.Message) {
-          console.log('All messages from MathJax:', JSON.stringify(window.MathJax.Message.Log()))
-        } else {
-          console.error('Could not find window.MathJax.Message')
-        }
-        return str
-      })
-      break
-    }
-
-    // Wait a second before polling again
-    await sleep(1000)
   }
 
-  log.info('Saving file...')
-  await writeFile(output, pageContentAfterSerialize)
+  const mathEntries = await page.evaluate((PROGRESS_TIME) => {
+    const mathMLNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
+    const latexNodes = document.querySelectorAll('[data-math]')
+    console.log(`Found ${mathMLNodes.length} MathML elements and ${latexNodes.length} LaTeX functions`)
+    console.info('Extracting MathML and LaTeX elements from the document...')
+    const mathNodes = [...mathMLNodes, ...latexNodes]
+    const total = mathNodes.length
+    const mathMap/*: Map<string, {xml: string, fontSize: number}> */ = new Map()
+    let prevTime = Date.now()
+    let index = 0
+    for (const mathNode of mathNodes) {
+      const xml = mathNode.getAttribute('data-math') ? mathNode.getAttribute('data-math') : mathNode.outerHTML
+      const fontSize = parseFloat(window.getComputedStyle(mathNode, null).getPropertyValue('font-size'))
+      // only set an ID if one does not already exist
+      if (!mathNode.getAttribute('id')) {
+        mathNode.setAttribute('id', `mjnode-${index}`)
+        mathNode.classList.add('-remove-id-later')
+      }
+
+      const id = mathNode.getAttribute('id')
+
+      // Print progress every 10 seconds
+      const now = Date.now()
+      if (now - prevTime > PROGRESS_TIME) {
+        const percent = Math.floor(100 * index / total)
+        console.info(`Extraction Progress: ${percent}%`)
+        prevTime = now
+      }
+      if (mathMap.has(id)) {
+        throw new Error(`Duplicate id detected: "${id}"`)
+      }
+      mathMap.set(id, {xml, fontSize})
+      index++
+    }
+    return [...mathMap.entries()]
+  }, PROGRESS_TIME)
+
+  const convertedMathML/*: Map<string, {svg, html, css}> */ = await mjnodeConverter.convertMathML(log, new Map(mathEntries), outputFormat)
+
+  log.info(`Inserting converted math elements...`)
+  const mathSources = [...convertedMathML.entries()]
+    .map(([id, {svg, html}]) => [id, svg || html])
+  await page.evaluate((convertedMathMLEntries, PROGRESS_TIME) => {
+    const total = convertedMathMLEntries.length
+    let prevTime = Date.now()
+    let index = 0
+    for (const [id, xml] of convertedMathMLEntries) {
+      const mathHTML = xml
+      const mathNode = document.getElementById(id)
+      if (!mathNode) {
+        throw new Error(`BUG: Could not find element with id="${id}"`)
+      }
+      try {
+        mathNode.outerHTML = mathHTML
+      } catch (err) {
+        console.error(`Problem inserting id="${id}" back into the document (might not be valid XML)`)
+        console.error(mathHTML)
+        mathNode.outerHTML = mathHTML
+      }
+
+      // Print progress every 10 seconds
+      const now = Date.now()
+      if (now - prevTime > PROGRESS_TIME) {
+        const percent = Math.round(100 * index / total)
+        console.info(`Inserted ${percent}% of all elements...`)
+        prevTime = now
+      }
+      index++
+    }
+  }, mathSources, PROGRESS_TIME)
+
+  // Inject any CSS that was generated by mathjax-node
+  // The CSS content may be duplicated. If so, remove duplicates.
+  const allCssMaybeDuplicate = [...convertedMathML.values()]
+    .map(({css}) => css)
+    .filter(css => !!css) // only keep the items that have a css block (this is null for svg)
+
+  const allUniqueCss = new Set(allCssMaybeDuplicate)
+  log.info(`Injecting MathJax-created CSS...`)
+  await page.evaluate((allCss) => {
+    console.info('Adding MathJax-created CSS')
+    const head = document.querySelector('head')
+    const style = document.createElement('style')
+    style.innerHTML = allCss.join('\n')
+    head.appendChild(style)
+  }, [...allUniqueCss.values()])
+
+  log.info(`Serializing XHTML back out...`)
+  let convertedContent = await page.evaluate(() => {
+    console.log('Serializing content...')
+    const s = new window.XMLSerializer()
+    const convertedContent = s.serializeToString(document)
+    return convertedContent
+  })
+
+  log.info('Saving file with injected math HTML elements...')
+  log.debug(`Saving result to "${output}"`)
+  await writeFile(output, convertedContent)
   log.info(`Content saved. Open "${output}" to see converted file.`)
 
   await browser.close()
 
+  let timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
+  let timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0
+  let timeOfEnd = ''
+
+  if (timeOfEndInMin) {
+    timeOfEnd = `${timeOfEndInMin} minutes and ${timeOfEndInSec % 60} seconds.`
+  } else {
+    timeOfEnd = `${timeOfEndInSec} seconds.`
+  }
+
+  log.debug(`Script was running for: ${timeOfEnd}`)
   return STATUS_CODE.OK
 }
 
@@ -287,6 +252,6 @@ async function injectCoverageCollection (page) {
 }
 
 module.exports = {
-  injectMathJax,
+  createMapOfMathMLElements,
   STATUS_CODE
 }
