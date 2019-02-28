@@ -3,7 +3,6 @@ const yargs = require('yargs')
 require('dotenv').config()
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
-const mathJaxPath = require.resolve('mathjax/unpacked/MathJax')
 const converter = require('./converter')
 
 const log = bunyan.createLogger({
@@ -25,12 +24,28 @@ const argv = yargs
     alias: 'o',
     describe: 'Output XHTML File'
   })
+  .option('format', {
+    alias: 'f',
+    describe: 'Output format for MathJax Conversion: html, svg. Default: html'
+  })
   .demandOption(['xhtml', 'output'])
   .help()
   .argv
 
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
+let outputFormat = 'html'
+
+if (argv.format) {
+  if (['svg', 'html'].indexOf(argv.format.toLowerCase()) >= 0) {
+    outputFormat = argv.format.toLowerCase()
+    log.debug(`Output format set to ${argv.format.toLowerCase()}`)
+  } else {
+    log.error(`You provided wrong format. It will be set to default (html).`)
+  }
+} else {
+  log.warn(`No output format. It will be set to default (html).`)
+}
 
 if (!/\.xhtml$/.test(pathToInput)) {
   throw new Error(`The input file must end with '.xhtml' so Chrome parses it as XML (strict) rather than HTML`)
@@ -41,4 +56,8 @@ if (!/\.xhtml$/.test(argv.output)) {
 }
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.injectMathJax(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, mathJaxPath)
+converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat)
+  .catch(err => {
+    log.fatal(err)
+    process.exit(111)
+  })
