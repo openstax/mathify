@@ -33,7 +33,7 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
         noReflows: false
       },
       SVG: {
-        font: 'STIX-Web',
+        font: 'STIXIntegralsUp',
         // mtextFontInherit: true,
         // Add fallback information to font-data:
         // https://github.com/mathjax/MathJax/issues/1091#issuecomment-269653429
