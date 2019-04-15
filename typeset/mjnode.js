@@ -33,8 +33,46 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
         noReflows: false
       },
       SVG: {
-        font: 'STIX-Web'
+        font: 'STIX-Web',
         // mtextFontInherit: true,
+        // Add fallback information to font-data:
+        // https://github.com/mathjax/MathJax/issues/1091#issuecomment-269653429
+        Argument: {
+          initSVG: function(math, span) {
+            if (this.config.font !== "TeX") {
+              this.Augment({
+                lookupChar_old: this.lookupChar,
+                lookupChar: function (variant,n) {
+                  do {
+                    var char = this.lookupChar_old(variant,n);
+                    if (char.id !== "unknown") return char;
+                    variant = VARIANT[variant.chain];
+                  } while (variant);
+                  return char;
+                }
+              });
+              var VARIANT = this.FONTDATA.VARIANT;
+              VARIANT["bold"].chain = "normal";
+              VARIANT["italic"].chain = "normal";
+              VARIANT["bold-italic"].chain = "bold";
+              VARIANT["double-struck"].chain = "normal";
+              VARIANT["fraktur"].chain = "normal";
+              VARIANT["bold-fraktur"].chain = "bold";
+              VARIANT["script"].chain = "normal";
+              VARIANT["bold-script"].chain = "bold";
+              VARIANT["sans-serif"].chain = "normal";
+              VARIANT["bold-sans-serif"].chain = "bold";
+              VARIANT["sans-serif-italic"].chain = "italic";
+              VARIANT["sans-serif-bold-italic"].chain = "bold-italic";
+              VARIANT["monospace"].chain = "normal";
+              VARIANT["-tex-caligraphic"].chain = "normal";
+              VARIANT["-tex-oldstyle"].chain = "normal";
+              VARIANT["-tex-caligraphic-bold"].chain = "bold";
+              VARIANT["-tex-oldstyle-bold"].chain = "bold";
+            }
+            this.initSVG = function (math,span) {}
+          }
+        }
       }
     }
   })
