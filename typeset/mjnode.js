@@ -93,6 +93,7 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
   const convertedMathMLElements = new Map()
   let prevTime = Date.now()
   let numDone = 0
+  const convertedCss = new Set()
   const promises = [...mathMap.entries()].map(([id, {xml: mathSource, fontSize}]) => {
     return mjAPI.typeset({
       math: mathSource,
@@ -122,14 +123,18 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
         if (html) {
           html = html.replace(/&nbsp;/g, '&#160;')
         }
-        convertedMathMLElements.set(id, {html, svg, css})
+        convertedMathMLElements.set(id, svg || html)
+        // store css in a separate map to deduplicate
+        if (!!css) {
+          convertedCss.add(css)
+        }
       })
   })
 
   await Promise.all(promises)
   log.debug(`Converted ${total} elements.`)
   log.info(`Converted all elements.`)
-  return convertedMathMLElements
+  return [convertedMathMLElements, [...convertedCss.keys()]]
 }
 
 module.exports = {
