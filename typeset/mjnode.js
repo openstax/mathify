@@ -1,6 +1,7 @@
 const mjAPI = require('mathjax-node')
+let mjStarted = false
 
-const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat) => {
+const startAPI = (log) => {
   log.debug('Setting config for MathJaxNode...')
   mjAPI.config({
     displayMessages: false, // determines whether Message.Set() calls are logged
@@ -78,6 +79,13 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
   })
   log.debug('Config is set. Starting mathjax-node service')
   mjAPI.start()
+  mjStarted = true
+}
+
+const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat) => {
+  if (!mjStarted) {
+    startAPI(log)
+  }
 
   const total = mathMap.size
   log.debug(`There are ${total} elements to process...`)
