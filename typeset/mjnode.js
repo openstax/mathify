@@ -82,17 +82,16 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat) => {
+const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat, total, done) => {
   if (!mjStarted) {
     startAPI(log)
   }
 
-  const total = mathMap.size
   log.debug(`There are ${total} elements to process...`)
-  log.info('Starting conversion of mapped MathML elements with mathjax-node...')
+  log.debug('Starting conversion of mapped MathML elements with mathjax-node...')
   const convertedMathMLElements = new Map()
   let prevTime = Date.now()
-  let numDone = 0
+  let numDone = done
   const convertedCss = new Set()
   const promises = [...mathMap.entries()].map(([id, {xml: mathSource, fontSize}]) => {
     return mjAPI.typeset({
@@ -132,8 +131,7 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
   })
 
   await Promise.all(promises)
-  log.debug(`Converted ${total} elements.`)
-  log.info(`Converted all elements.`)
+  log.info(`Converted ${numDone} elements.`)
   return [convertedMathMLElements, [...convertedCss.keys()]]
 }
 
