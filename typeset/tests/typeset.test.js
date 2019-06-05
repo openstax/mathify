@@ -61,19 +61,19 @@ afterAll(() => {
 })
 
 test('Fail if user provide wrong path for input file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html')
+  let res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Fail if user provide wrong path for css file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html')
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Success if converter finished without errors FORMAT HTML.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html')
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
     isOutputFile = true
@@ -84,7 +84,7 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
 }, 30000)
 
 test('Success if converter finished without errors FORMAT SVG.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg')
+  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
     isOutputFile = true
@@ -95,7 +95,7 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
 }, 30000)
 
 test('Success if convertered LaTeX functions with success.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html')
+  let res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputLatex)) {
     isOutputFile = true

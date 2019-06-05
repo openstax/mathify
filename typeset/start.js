@@ -28,6 +28,10 @@ const argv = yargs
     alias: 'f',
     describe: 'Output format for MathJax Conversion: html, svg. Default: html'
   })
+  .option('batch-size', {
+    alias: 'b',
+    describe: 'Number of math elements to convert as a batch. Default: 3000'
+  })
   .demandOption(['xhtml', 'output'])
   .help()
   .argv
@@ -35,6 +39,11 @@ const argv = yargs
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
 let outputFormat = 'html'
+let batchSize = Number(argv.batchSize) || 3000
+
+if (argv.batchSize && !String(argv.batchSize).match(/^[0-9]+$/)) {
+  throw new Error('Invalid batch size. Batch size should be an integer.')
+}
 
 if (argv.format) {
   if (['svg', 'html'].indexOf(argv.format.toLowerCase()) >= 0) {
@@ -56,7 +65,7 @@ if (!/\.xhtml$/.test(argv.output)) {
 }
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat)
+converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize)
   .catch(err => {
     log.fatal(err)
     process.exit(111)

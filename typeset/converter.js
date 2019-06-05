@@ -16,7 +16,7 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat) => {
+const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
   let timeOfStart = new Date().getTime()
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
@@ -131,37 +131,43 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     return [...mathMap.entries()]
   }, PROGRESS_TIME)
 
-  const [convertedMathML/*: Map<string, {svg || html}> */, allUniqueCss] = await mjnodeConverter.convertMathML(log, new Map(mathEntries), outputFormat)
+  let allUniqueCss = new Set()
+  for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
+    const start = batchSize * batch
+    const end = Math.min(batchSize * batch + batchSize, mathEntries.length)
+    log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
+    const [convertedMathML/*: Map<string, {svg || html}> */, uniqueCss] = await mjnodeConverter.convertMathML(log, new Map(mathEntries.slice(start, end)), outputFormat, mathEntries.length, start)
+    allUniqueCss.add(uniqueCss)
 
-  log.info(`Inserting converted math elements...`)
-  await page.evaluate((convertedMathMLEntries, PROGRESS_TIME) => {
-    const total = convertedMathMLEntries.length
-    let prevTime = Date.now()
-    let index = 0
-    for (const [id, xml] of convertedMathMLEntries) {
-      const mathHTML = xml
-      const mathNode = document.getElementById(id)
-      if (!mathNode) {
-        throw new Error(`BUG: Could not find element with id="${id}"`)
-      }
-      try {
-        mathNode.outerHTML = mathHTML
-      } catch (err) {
-        console.error(`Problem inserting id="${id}" back into the document (might not be valid XML)`)
-        console.error(mathHTML)
-        mathNode.outerHTML = mathHTML
-      }
+    log.debug(`Inserting converted math elements...`)
+    await page.evaluate((convertedMathMLEntries, PROGRESS_TIME, total, done) => {
+      let prevTime = Date.now()
+      let numDone = done
+      for (const [id, xml] of convertedMathMLEntries) {
+        const mathHTML = xml
+        const mathNode = document.getElementById(id)
+        if (!mathNode) {
+          throw new Error(`BUG: Could not find element with id="${id}"`)
+        }
+        try {
+          mathNode.outerHTML = mathHTML
+        } catch (err) {
+          console.error(`Problem inserting id="${id}" back into the document (might not be valid XML)`)
+          console.error(mathHTML)
+          mathNode.outerHTML = mathHTML
+        }
 
-      // Print progress every 10 seconds
-      const now = Date.now()
-      if (now - prevTime > PROGRESS_TIME) {
-        const percent = Math.round(100 * index / total)
-        console.info(`Inserted ${percent}% of all elements...`)
-        prevTime = now
+        numDone++
+        // Print progress every 10 seconds
+        const now = Date.now()
+        if (now - prevTime > PROGRESS_TIME) {
+          const percent = Math.round(100 * numDone / total)
+          console.info(`Inserted ${percent}% of all elements...`)
+          prevTime = now
+        }
       }
-      index++
-    }
-  }, [...convertedMathML.entries()], PROGRESS_TIME)
+    }, [...convertedMathML.entries()], PROGRESS_TIME, mathEntries.length, start)
+  }
 
   log.info(`Injecting MathJax-created CSS...`)
   await page.evaluate((allCss) => {
@@ -170,7 +176,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     const style = document.createElement('style')
     style.innerHTML = allCss.join('\n')
     head.appendChild(style)
-  }, allUniqueCss)
+  }, [...allUniqueCss.keys()])
 
   log.info(`Serializing XHTML back out...`)
   let convertedContent = await page.evaluate(() => {
