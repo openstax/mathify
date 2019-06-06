@@ -9,16 +9,6 @@ const startAPI = (log) => {
     undefinedCharError: false, // determines whether "unknown characters" (i.e., no glyph in the configured fonts) are saved in the error array
     extensions: '',
     MathJax: {
-      extensions: ['MatchWebFonts.js'],
-      MatchWebFonts: {
-        matchFor: {
-          CommonHTML: true,
-          'HTML-CSS': true,
-          SVG: true
-        },
-        fontCheckDelay: 2000,
-        fontCheckTimeout: 30 * 1000
-      },
       CommonHTML: {
         linebreaks: {
           automatic: true
