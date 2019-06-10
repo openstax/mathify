@@ -16,7 +16,7 @@
     "mathjax": "^2.7.4",
     "mathjax-node": "^2.1.1",
     "pify": "^3.0.0",
-    "puppeteer": "^1.5.0",
+    "puppeteer": "^1.17.0",
     "yargs": "^11.0.0"
   },
   "devDependencies": {
