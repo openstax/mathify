@@ -1,9 +1,10 @@
 const path = require('path')
-const fs = require('fs')
 const {createHash} = require('crypto')
 const fileExists = require('file-exists')
-const pify = require('pify')
 const puppeteer = require('puppeteer')
+const fs = require('fs')
+const pify = require('pify')
+const readFile = pify(fs.readFile)
 const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
 
@@ -14,6 +15,10 @@ const PROGRESS_TIME = 10 * 1000 // 10 seconds
 const STATUS_CODE = {
   OK: 0,
   ERROR: 111
+}
+
+const mathNodePlaceholder = (id) => {
+  return `<!-- math node ${id} -->`
 }
 
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
@@ -104,26 +109,24 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     })
   }
 
-  const mathEntries = await page.evaluate((PROGRESS_TIME) => {
-    const mathMLNodes = document.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
-    const latexNodes = document.querySelectorAll('[data-math]')
-    console.log(`Found ${mathMLNodes.length} MathML elements and ${latexNodes.length} LaTeX functions`)
+  const mathEntries = await page.evaluate((PROGRESS_TIME, PLACE_HOLDER_TEMPLATE) => {
+    // No way to specify the namespace in css selectors, so namespace check is in the loop
+    const mathNodes = document.querySelectorAll('*|math, [data-math]')
     console.info('Extracting MathML and LaTeX elements from the document...')
-    const mathNodes = [...mathMLNodes, ...latexNodes]
-    const total = mathNodes.length
-    const mathMap/*: Map<string, {xml: string, fontSize: number}> */ = new Map()
+    let total = mathNodes.length
+    const mathMap /* [{xml: string, fontSize: number}, ...] */ = []
     let prevTime = Date.now()
     let index = 0
     for (const mathNode of mathNodes) {
+      // skip all the <math> nodes that are not in the MathML namespace
+      if (mathNode.tagName === 'math' && mathNode.namespaceURI !== 'http://www.w3.org/1998/Math/MathML') {
+        total -= 1
+        continue
+      }
       const xml = mathNode.getAttribute('data-math') ? mathNode.getAttribute('data-math') : mathNode.outerHTML
       const fontSize = parseFloat(window.getComputedStyle(mathNode, null).getPropertyValue('font-size'))
-      // only set an ID if one does not already exist
-      if (!mathNode.getAttribute('id')) {
-        mathNode.setAttribute('id', `mjnode-${index}`)
-        mathNode.classList.add('-remove-id-later')
-      }
-
-      const id = mathNode.getAttribute('id')
+      // put html comment placeholder for where the converted math should go
+      mathNode.outerHTML = PLACE_HOLDER_TEMPLATE.replace('{id}', index)
 
       // Print progress every 10 seconds
       const now = Date.now()
@@ -132,76 +135,51 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         console.info(`Extraction Progress: ${percent}%`)
         prevTime = now
       }
-      if (mathMap.has(id)) {
-        throw new Error(`Duplicate id detected: "${id}"`)
-      }
-      mathMap.set(id, {xml, fontSize})
+      mathMap.push({xml, fontSize})
       index++
     }
-    return [...mathMap.entries()]
-  }, PROGRESS_TIME)
+    return mathMap
+  }, PROGRESS_TIME, mathNodePlaceholder('{id}'))
+
+  let pageContent = await page.evaluate(() => {
+    const serializer = new window.XMLSerializer()
+    return serializer.serializeToString(document.documentElement)
+  })
+
+  browser.close()
 
   let allUniqueCss = new Set()
+  let nextMathNodeIndex
   for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
     const start = batchSize * batch
     const end = Math.min(batchSize * batch + batchSize, mathEntries.length)
     log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
-    const [convertedMathML/*: Map<string, {svg || html}> */, uniqueCss] = await mjnodeConverter.convertMathML(log, new Map(mathEntries.slice(start, end)), outputFormat, mathEntries.length, start)
+    const [convertedMathML/*: Map<integer, {svg || html}> */, uniqueCss] = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start)
     allUniqueCss.add(uniqueCss)
 
     log.debug(`Inserting converted math elements...`)
-    await page.evaluate((convertedMathMLEntries, PROGRESS_TIME, total, done) => {
-      let prevTime = Date.now()
-      let numDone = done
-      for (const [id, xml] of convertedMathMLEntries) {
-        const mathHTML = xml
-        const mathNode = document.getElementById(id)
-        if (!mathNode) {
-          throw new Error(`BUG: Could not find element with id="${id}"`)
-        }
-        try {
-          mathNode.outerHTML = mathHTML
-        } catch (err) {
-          console.error(`Problem inserting id="${id}" back into the document (might not be valid XML)`)
-          console.error(mathHTML)
-          mathNode.outerHTML = mathHTML
-        }
-
-        numDone++
-        // Print progress every 10 seconds
-        const now = Date.now()
-        if (now - prevTime > PROGRESS_TIME) {
-          const percent = Math.round(100 * numDone / total)
-          console.info(`Inserted ${percent}% of all elements...`)
-          prevTime = now
-        }
+    let convertedContent = []
+    // sort the ids using numeric sort (default is string sort)
+    for (const id of [...convertedMathML.keys()].sort((a, b) => a - b)) {
+      const xml = convertedMathML.get(id)
+      // Replacing placeholder with converted math
+      nextMathNodeIndex = pageContent.indexOf(mathNodePlaceholder(id))
+      if (nextMathNodeIndex === -1) {
+        throw new Error(`Unable to find ${mathNodePlaceholder(id)}`)
       }
-    }, [...convertedMathML.entries()], PROGRESS_TIME, mathEntries.length, start)
+      convertedContent.push(pageContent.substr(0, nextMathNodeIndex))
+      convertedContent.push(xml)
+      pageContent = pageContent.substr(nextMathNodeIndex + mathNodePlaceholder(id).length)
+    }
+    await writeFile(output, convertedContent.join(''), {flag: batch === 0 ? 'w' : 'a'})
   }
+  await writeFile(output, pageContent, {flag: 'a'})
 
   log.info(`Injecting MathJax-created CSS...`)
-  await page.evaluate((allCss) => {
-    console.info('Adding MathJax-created CSS')
-    const head = document.querySelector('head')
-    const style = document.createElement('style')
-    style.innerHTML = allCss.join('\n')
-    head.appendChild(style)
-  }, [...allUniqueCss.keys()])
+  pageContent = await readFile(output, 'utf-8')
+  await writeFile(output, pageContent.replace('</head>', `<style>${[...allUniqueCss.keys()].join('\n')}</style></head>`, 1))
 
-  log.info(`Serializing XHTML back out...`)
-  let convertedContent = await page.evaluate(() => {
-    console.log('Serializing content...')
-    const s = new window.XMLSerializer()
-    const convertedContent = s.serializeToString(document)
-    return convertedContent
-  })
-
-  log.info('Saving file with injected math HTML elements...')
-  log.debug(`Saving result to "${output}"`)
-  await writeFile(output, convertedContent)
   log.info(`Content saved. Open "${output}" to see converted file.`)
-
-  await browser.close()
 
   let timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
   let timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0

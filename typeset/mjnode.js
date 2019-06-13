@@ -72,7 +72,7 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize: number} */, outputFormat, total, done) => {
+const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}, ...] */, outputFormat, total, done) => {
   if (!mjStarted) {
     startAPI(log)
   }
@@ -83,7 +83,10 @@ const convertMathML = async (log, mathMap/*: Map<string, {xml: string, fontSize:
   let prevTime = Date.now()
   let numDone = done
   const convertedCss = new Set()
-  const promises = [...mathMap.entries()].map(([id, {xml: mathSource, fontSize}]) => {
+  let index = 0
+  const promises = mathEntries.map(({xml: mathSource, fontSize}) => {
+    const id = done + index
+    index++
     return mjAPI.typeset({
       math: mathSource,
       format: mathSource[0] !== '\\' ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
