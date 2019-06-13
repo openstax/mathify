@@ -38,6 +38,16 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   const page = await browser.newPage()
 
+  // Disable resources, uses too much memory
+  await page.setRequestInterception(true)
+  page.on('request', (interceptedRequest) => {
+    const url = interceptedRequest.url().split('#')[0].split('?')[0]
+    if (url.startsWith('file:') && (url.endsWith('.xhtml') || url.endsWith('.html') || url.endsWith('.css'))) {
+      return interceptedRequest.continue()
+    }
+    interceptedRequest.abort()
+  })
+
   const browserLog = log.child({browser: 'console'})
   page.on('console', msg => {
     switch (msg.type()) {
@@ -45,7 +55,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         // Loading an XHTML file with missing images is fine so we ignore
         // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
         const text = msg.text()
-        if (text !== 'Failed to load resource: net::ERR_FILE_NOT_FOUND') {
+        if (!text.match(/Failed to load resource: net::(ERR_FILE_NOT_FOUND|ERR_FAILED)/)) {
           browserLog.error(msg.text())
         }
         break
