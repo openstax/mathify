@@ -87,14 +87,16 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
   const promises = mathEntries.map(({xml: mathSource, fontSize}) => {
     const id = done + index
     index++
-    return mjAPI.typeset({
+    const typesetConfig = {
       math: mathSource,
-      format: mathSource[0] !== '\\' ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
+      format: mathSource.match('^<([^:]+:)?math') ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
       css: outputFormat === 'html',
       ex: fontSize
-    })
+    }
+    log.debug(`Typeset config: ${JSON.stringify(typesetConfig)}`)
+    return mjAPI.typeset(typesetConfig)
       .then((result) => {
         const {errors, svg, css} = result
         let {html} = result // later, remove &nbsp; since it is not valid XHTML
