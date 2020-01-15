@@ -24,7 +24,9 @@ const startAPI = (log) => {
         noReflows: false
       },
       SVG: {
-        font: 'STIXIntegralsUp',
+        font: 'STIX-Web',
+        scale: 40,
+        blacker: 0,
         // mtextFontInherit: true,
         // Add fallback information to font-data:
         // https://github.com/mathjax/MathJax/issues/1091#issuecomment-269653429
