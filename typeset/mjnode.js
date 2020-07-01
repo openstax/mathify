@@ -31,39 +31,39 @@ const startAPI = (log) => {
         // Add fallback information to font-data:
         // https://github.com/mathjax/MathJax/issues/1091#issuecomment-269653429
         Argument: {
-          initSVG: function(math, span) {
-            if (this.config.font !== "TeX") {
+          initSVG: function (math, span) {
+            if (this.config.font !== 'TeX') {
               this.Augment({
                 lookupChar_old: this.lookupChar,
-                lookupChar: function (variant,n) {
+                lookupChar: function (variant, n) {
                   do {
-                    var char = this.lookupChar_old(variant,n);
-                    if (char.id !== "unknown") return char;
-                    variant = VARIANT[variant.chain];
-                  } while (variant);
-                  return char;
+                    var char = this.lookupChar_old(variant, n)
+                    if (char.id !== 'unknown') return char
+                    variant = VARIANT[variant.chain]
+                  } while (variant)
+                  return char
                 }
-              });
-              var VARIANT = this.FONTDATA.VARIANT;
-              VARIANT["bold"].chain = "normal";
-              VARIANT["italic"].chain = "normal";
-              VARIANT["bold-italic"].chain = "bold";
-              VARIANT["double-struck"].chain = "normal";
-              VARIANT["fraktur"].chain = "normal";
-              VARIANT["bold-fraktur"].chain = "bold";
-              VARIANT["script"].chain = "normal";
-              VARIANT["bold-script"].chain = "bold";
-              VARIANT["sans-serif"].chain = "normal";
-              VARIANT["bold-sans-serif"].chain = "bold";
-              VARIANT["sans-serif-italic"].chain = "italic";
-              VARIANT["sans-serif-bold-italic"].chain = "bold-italic";
-              VARIANT["monospace"].chain = "normal";
-              VARIANT["-tex-caligraphic"].chain = "normal";
-              VARIANT["-tex-oldstyle"].chain = "normal";
-              VARIANT["-tex-caligraphic-bold"].chain = "bold";
-              VARIANT["-tex-oldstyle-bold"].chain = "bold";
+              })
+              var VARIANT = this.FONTDATA.VARIANT
+              VARIANT['bold'].chain = 'normal'
+              VARIANT['italic'].chain = 'normal'
+              VARIANT['bold-italic'].chain = 'bold'
+              VARIANT['double-struck'].chain = 'normal'
+              VARIANT['fraktur'].chain = 'normal'
+              VARIANT['bold-fraktur'].chain = 'bold'
+              VARIANT['script'].chain = 'normal'
+              VARIANT['bold-script'].chain = 'bold'
+              VARIANT['sans-serif'].chain = 'normal'
+              VARIANT['bold-sans-serif'].chain = 'bold'
+              VARIANT['sans-serif-italic'].chain = 'italic'
+              VARIANT['sans-serif-bold-italic'].chain = 'bold-italic'
+              VARIANT['monospace'].chain = 'normal'
+              VARIANT['-tex-caligraphic'].chain = 'normal'
+              VARIANT['-tex-oldstyle'].chain = 'normal'
+              VARIANT['-tex-caligraphic-bold'].chain = 'bold'
+              VARIANT['-tex-oldstyle-bold'].chain = 'bold'
             }
-            this.initSVG = function (math,span) {}
+            this.initSVG = function (math, span) {}
           }
         }
       }
@@ -121,7 +121,7 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
         }
         convertedMathMLElements.set(id, svg || html)
         // store css in a separate map to deduplicate
-        if (!!css) {
+        if (css != null) {
           convertedCss.add(css)
         }
       })

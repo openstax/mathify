@@ -38,7 +38,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   log.debug('Starting puppeteer...')
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox'],
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
     devtools: process.env.BROWSER_DEBUGGER === 'true'
   })
   const page = await browser.newPage()
