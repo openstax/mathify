@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node ./typeset/start.js @*",
     "start-debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "jest && standard --fix",
+    "test": "standard --fix && jest",
     "watch": "jest --watch",
     "jest": "jest"
   },
