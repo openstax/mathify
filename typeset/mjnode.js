@@ -7,6 +7,17 @@ const CHTML = require('mathjax-full/js/output/chtml.js').CHTML;
 const liteAdaptor = require('mathjax-full/js/adaptors/liteAdaptor.js').liteAdaptor;
 const RegisterHTMLHandler = require('mathjax-full/js/handlers/html.js').RegisterHTMLHandler;
 
+// https://github.com/mathjax/MathJax/issues/2402#issuecomment-614867371
+// Caused by <munder><mtext>long sentence</mtext><mo stretchy="true">︸</mo></munder>
+const SVGWrapper = require('mathjax-full/js/output/svg/Wrapper').SVGWrapper;
+const CommonWrapper = require('mathjax-full/js/output/common/Wrapper').CommonWrapper;
+if (mathjax.version === '3.0.5') {
+  SVGWrapper.prototype.unicodeChars = function (text, variant) {
+    if (!variant) variant = this.variant || 'normal';
+    return CommonWrapper.prototype.unicodeChars.call(this, text, variant);
+  }
+}
+
 //
 //  Create DOM adaptor and register it for HTML documents
 //
@@ -20,6 +31,7 @@ const mml = new MathML();
 const tex = new TeX({packages: AllPackages.sort()});
 const svg = new SVG({fontCache: (true ? 'local' : 'none')});
 const chtml = new CHTML(/*{fontURL: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/output/chtml/fonts/woff-v2'}*/);
+
 
 const docsMatrix = {
   mml: {
@@ -53,17 +65,23 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
     const isMml = mathSource.match('^<([^:]+:)?math')
     const outFormatName = outputFormat === 'svg' ? 'svg' : 'chtml'
     const inputDoc = docsMatrix[isMml ? 'mml' : 'tex'][outFormatName]
-   
-    const node = inputDoc.convert(mathSource, {
-      // display: true,
-      // em: fontSize,
-      ex: fontSize,
-      // containerWidth: 44
-    });
 
-    const output = adaptor.innerHTML(node)
-    convertedMathMLElements.set(id, output)
-    convertedCss.add(adaptor.textContent(outputMatrix[outFormatName].styleSheet(node)))
+    try {
+      const node = inputDoc.convert(mathSource, {
+        // display: true,
+        // em: fontSize,
+        ex: fontSize,
+        // containerWidth: 44
+      });
+  
+      const output = adaptor.innerHTML(node)
+      convertedMathMLElements.set(id, output)
+      convertedCss.add(adaptor.textContent(outputMatrix[outFormatName].styleSheet(node)))
+    } catch (err) {
+      log.info(mathSource)
+      log.fatal(err)
+      throw new Error(err.message)
+    }
 
     numDone++
 

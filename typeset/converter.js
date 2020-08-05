@@ -124,9 +124,13 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         continue
       }
       // Clean up the MathML
-      [...mathNode.querySelectorAll('*|mstyle[mathvariant="bolditalic"]')].forEach(el => {
-        console.warn(`ERROR: Found mstyle with mathvariant="bolditalic". It should be "bold-italic". MathML=${mathNode.outerHTML}`)
+      [...mathNode.querySelectorAll('[mathvariant="bolditalic"]')].forEach(el => {
+        console.warn(`ERROR: Found element with mathvariant="bolditalic". It should be "bold-italic". MathML=${mathNode.outerHTML}`)
         el.setAttribute('mathvariant', 'bold-italic')
+      });
+      [...mathNode.querySelectorAll('[mathvariant="italics"]')].forEach(el => {
+        console.warn(`ERROR: Found element with mathvariant="italics". It should be "italic". MathML=${mathNode.outerHTML}`)
+        el.setAttribute('mathvariant', 'italic')
       })
 
       const xml = mathNode.getAttribute('data-math') ? mathNode.getAttribute('data-math') : mathNode.outerHTML
