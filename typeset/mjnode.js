@@ -3,6 +3,7 @@ const MathML = require('mathjax-full/js/input/mathml.js').MathML;
 const TeX = require('mathjax-full/js/input/tex.js').TeX;
 const AllPackages = require('mathjax-full/js/input/tex/AllPackages.js').AllPackages;
 const SVG = require('mathjax-full/js/output/svg.js').SVG;
+const CHTML = require('mathjax-full/js/output/chtml.js').CHTML;
 const liteAdaptor = require('mathjax-full/js/adaptors/liteAdaptor.js').liteAdaptor;
 const RegisterHTMLHandler = require('mathjax-full/js/handlers/html.js').RegisterHTMLHandler;
 
@@ -18,8 +19,23 @@ RegisterHTMLHandler(adaptor);
 const mml = new MathML();
 const tex = new TeX({packages: AllPackages.sort()});
 const svg = new SVG({fontCache: (true ? 'local' : 'none')});
-const mmlInputDoc = mathjax.document('', {InputJax: mml, OutputJax: svg});
-const texInputDoc = mathjax.document('', {InputJax: tex, OutputJax: svg});
+const chtml = new CHTML(/*{fontURL: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/output/chtml/fonts/woff-v2'}*/);
+
+const docsMatrix = {
+  mml: {
+    svg:    mathjax.document('', {InputJax: mml, OutputJax: svg}),
+    chtml:  mathjax.document('', {InputJax: mml, OutputJax: chtml}),
+  },
+  tex: {
+    svg:    mathjax.document('', {InputJax: tex, OutputJax: svg}),
+    chtml:  mathjax.document('', {InputJax: tex, OutputJax: chtml}),
+  }
+}
+
+const outputMatrix = {
+  svg,
+  chtml
+}
 
 const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}, ...] */, outputFormat, total, done) => {
 
@@ -35,7 +51,8 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
     index++
 
     const isMml = mathSource.match('^<([^:]+:)?math')
-    const inputDoc = isMml ? mmlInputDoc : texInputDoc
+    const outFormatName = outputFormat === 'svg' ? 'svg' : 'chtml'
+    const inputDoc = docsMatrix[isMml ? 'mml' : 'tex'][outFormatName]
    
     const node = inputDoc.convert(mathSource, {
       // display: true,
@@ -44,8 +61,9 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
       // containerWidth: 44
     });
 
-    const svg = adaptor.innerHTML(node)
-    convertedMathMLElements.set(id, svg || html)
+    const output = adaptor.innerHTML(node)
+    convertedMathMLElements.set(id, output)
+    convertedCss.add(adaptor.textContent(outputMatrix[outFormatName].styleSheet(node)))
 
     numDone++
 
