@@ -13,8 +13,8 @@
     "bunyan-format": "^0.2.1",
     "dotenv": "^6.0.0",
     "file-exists": "^5.0.1",
-    "mathjax": "^2.7.4",
-    "mathjax-node": "^2.1.1",
+    "mathjax": "^3.0.5",
+    "mathjax-full": "^3.0.5",
     "pify": "^3.0.0",
     "puppeteer": "^1.17.0",
     "yargs": "^11.0.0"

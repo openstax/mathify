@@ -123,6 +123,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         total -= 1
         continue
       }
+      // Clean up the MathML
+      [...mathNode.querySelectorAll('*|mstyle[mathvariant="bolditalic"]')].forEach(el => {
+        console.warn(`ERROR: Found mstyle with mathvariant="bolditalic". It should be "bold-italic". MathML=${mathNode.outerHTML}`)
+        el.setAttribute('mathvariant', 'bold-italic')
+      })
+
       const xml = mathNode.getAttribute('data-math') ? mathNode.getAttribute('data-math') : mathNode.outerHTML
       const fontSize = parseFloat(window.getComputedStyle(mathNode, null).getPropertyValue('font-size'))
       // put html comment placeholder for where the converted math should go
