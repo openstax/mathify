@@ -7,6 +7,9 @@ const CHTML = require('mathjax-full/js/output/chtml.js').CHTML;
 const liteAdaptor = require('mathjax-full/js/adaptors/liteAdaptor.js').liteAdaptor;
 const RegisterHTMLHandler = require('mathjax-full/js/handlers/html.js').RegisterHTMLHandler;
 
+const MmlMath = require('mathjax-full/js/core/MmlTree/MmlNodes/math').MmlMath
+const MmlMstyle = require('mathjax-full/js/core/MmlTree/MmlNodes/mstyle').MmlMstyle
+
 // https://github.com/mathjax/MathJax/issues/2402#issuecomment-614867371
 // Caused by <munder><mtext>long sentence</mtext><mo stretchy="true">︸</mo></munder>
 const SVGWrapper = require('mathjax-full/js/output/svg/Wrapper').SVGWrapper;
@@ -17,6 +20,8 @@ if (mathjax.version === '3.0.5') {
     return CommonWrapper.prototype.unicodeChars.call(this, text, variant);
   }
 }
+// MmlMath.defaults.scriptsizemultiplier = MmlMstyle.defaults.scriptsizemultiplier = .85
+MmlMath.defaults.scriptminsize = MmlMstyle.defaults.scriptminsize = .9 // 90% . Also, "10px" would work
 
 //
 //  Create DOM adaptor and register it for HTML documents

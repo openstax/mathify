@@ -14,7 +14,6 @@ const PROGRESS_TIME = 10 * 1000 // 10 seconds
 // Status codes
 const STATUS_CODE = {
   OK: 0,
-  ERROR: 111
 }
 
 const mathNodePlaceholder = (id) => {
@@ -25,12 +24,10 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   let timeOfStart = new Date().getTime()
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
-    log.error(`Input XHTML file not found: "${inputPath}"`)
-    return STATUS_CODE.ERROR
+    throw new Error(`Input XHTML file not found: "${inputPath}"`)
   }
   if (cssPath && !fileExists.sync(cssPath)) {
-    log.error(`Input CSS file not found: "${cssPath}"`)
-    return STATUS_CODE.ERROR
+    throw new Error(`Input CSS file not found: "${cssPath}"`)
   }
 
   const url = `file://${inputPath}`
@@ -79,8 +76,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     }
   })
   page.on('pageerror', msgText => {
-    log.fatal('browser-ERROR', msgText)
-    return STATUS_CODE.ERROR
+    throw new Error('browser-ERROR', msgText)
   })
 
   log.info(`Opening XHTML file (may take a few minutes)`)
