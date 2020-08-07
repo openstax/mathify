@@ -17,11 +17,11 @@
     "mathjax-node": "^2.1.1",
     "pify": "^3.0.0",
     "puppeteer": "^1.17.0",
-    "yargs": "^11.0.0"
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@types/jest": "^23.1.2",
-    "jest": "^21.2.1",
+    "jest": "^26.2.2",
     "standard": "^11.0.1"
   },
   "jest": {

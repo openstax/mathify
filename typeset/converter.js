@@ -80,7 +80,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   page.on('pageerror', msgText => {
     log.fatal('browser-ERROR', msgText)
-    return STATUS_CODE.ERROR
+    process.exit(STATUS_CODE.ERROR)
   })
 
   log.info(`Opening XHTML file (may take a few minutes)`)
@@ -93,14 +93,15 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   // Collect code coverage of the browser JS
   await injectCoverageCollection(page)
 
-  await page.evaluate(() => {
+  const initFn = () => {
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
       elementsToRemove: [],
       isDoneSwitching: false
     }
-  })
+  }
+  await page.evaluate(initFn)
 
   if (cssPath) {
     log.info(`Injecting CSS...`)
@@ -177,7 +178,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   log.info(`Injecting MathJax-created CSS...`)
   pageContent = await readFile(output, 'utf-8')
-  await writeFile(output, pageContent.replace('</head>', `<style>${[...allUniqueCss.keys()].join('\n')}</style></head>`, 1))
+  await writeFile(output, pageContent.replace('</head>', `<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`, 1))
 
   log.info(`Content saved. Open "${output}" to see converted file.`)
 
@@ -197,6 +198,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
 async function injectCoverageCollection (page) {
   // From https://github.com/GoogleChrome/puppeteer/pull/1067/files
+  // Log out one of the page.evaluate() functions when running the tests to see what Istanbul expects
   if (global.__coverage__) {
     const coverageObjects = {}
     Object.keys(global.__coverage__).forEach(filename => {
@@ -226,10 +228,12 @@ async function injectCoverageCollection (page) {
         })
       }
       keys.forEach(key => {
-        window[`cov_${key}`] = {
-          f: createProxy([key, 'f']),
-          s: createProxy([key, 's']),
-          b: createProxy([key, 'b'])
+        window[`cov_${key}`] = () => {
+          return {
+            f: createProxy([key, 'f']),
+            s: createProxy([key, 's']),
+            b: createProxy([key, 'b'])
+          }
         }
       })
     }, Object.keys(coverageObjects))

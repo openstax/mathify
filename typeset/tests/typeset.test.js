@@ -163,6 +163,9 @@ test('Check if LaTeX functions was converted correctly.', async (done) => {
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutputLatex}`)
   let res = await page.evaluate(/* istanbul ignore next */() => {
+    // if (document.querySelector('parsererror')) {
+    //   throw new Error(`parsererror: ${document.querySelector('parsererror').textContent}`)
+    // }
     let res = {
       dataMath: 0,
       mjNodeClasses: 0

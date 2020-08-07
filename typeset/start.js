@@ -66,6 +66,7 @@ if (!/\.xhtml$/.test(argv.output)) {
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
 converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize)
+  .then(exitStatus => process.exit(exitStatus))
   .catch(err => {
     log.fatal(err)
     process.exit(111)
