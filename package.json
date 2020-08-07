@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "scripts": {
     "start": "node ./typeset/start.js @*",
-    "start-debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "standard --fix && jest",
+    "start:debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
+    "test": "standard --fix --verbose && jest",
     "watch": "jest --watch",
     "jest": "jest"
   },
