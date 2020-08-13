@@ -1,6 +1,6 @@
+const path = require('path')
 const mjAPI = require('mathjax-node')
 let mjStarted = false
-var path = require('path')
 
 const startAPI = (log) => {
   log.debug('Setting config for MathJaxNode...')
