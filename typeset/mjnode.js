@@ -1,3 +1,4 @@
+const path = require('path')
 const mjAPI = require('mathjax-node')
 let mjStarted = false
 
@@ -7,7 +8,8 @@ const startAPI = (log) => {
     displayMessages: false, // determines whether Message.Set() calls are logged
     displayErrors: true, // determines whether error messages are shown on the console
     undefinedCharError: false, // determines whether "unknown characters" (i.e., no glyph in the configured fonts) are saved in the error array
-    extensions: '',
+    extensions: '[extensions]/minFontSize.js',
+    paths: {extensions: path.join(__dirname, 'extensions')},
     MathJax: {
       CommonHTML: {
         linebreaks: {
