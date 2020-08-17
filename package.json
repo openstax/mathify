@@ -9,20 +9,20 @@
     "jest": "jest"
   },
   "dependencies": {
-    "bunyan": "^1.8.12",
-    "bunyan-format": "^0.2.1",
-    "dotenv": "^6.0.0",
-    "file-exists": "^5.0.1",
+    "bunyan": ">=1",
+    "bunyan-format": ">=0.2",
+    "dotenv": ">=6",
+    "file-exists": ">=5",
     "mathjax": "^2.7.4",
-    "mathjax-node": "^2.1.1",
-    "pify": "^3.0.0",
-    "puppeteer": "^1.17.0",
-    "yargs": "^11.0.0"
+    "mathjax-node": ">=2",
+    "pify": ">=3",
+    "puppeteer": ">=1",
+    "yargs": ">=15"
   },
   "devDependencies": {
-    "@types/jest": "^23.1.2",
-    "jest": "^21.2.1",
-    "standard": "^11.0.1"
+    "@types/jest": ">=23",
+    "jest": ">=26",
+    "standard": ">=11"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

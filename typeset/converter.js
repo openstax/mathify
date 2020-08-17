@@ -1,5 +1,5 @@
 const path = require('path')
-const {createHash} = require('crypto')
+const { createHash } = require('crypto')
 const fileExists = require('file-exists')
 const puppeteer = require('puppeteer')
 const fs = require('fs')
@@ -22,7 +22,7 @@ const mathNodePlaceholder = (id) => {
 }
 
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
-  let timeOfStart = new Date().getTime()
+  const timeOfStart = new Date().getTime()
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
     log.error(`Input XHTML file not found: "${inputPath}"`)
@@ -53,14 +53,13 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     interceptedRequest.abort()
   })
 
-  const browserLog = log.child({browser: 'console'})
+  const browserLog = log.child({ browser: 'console' })
   page.on('console', msg => {
     switch (msg.type()) {
       case 'error':
         // Loading an XHTML file with missing images is fine so we ignore
         // "Failed to load resource: net::ERR_FILE_NOT_FOUND" messages
-        const text = msg.text()
-        if (!text.match(/Failed to load resource: net::(ERR_FILE_NOT_FOUND|ERR_FAILED)/)) {
+        if (!msg.text().match(/Failed to load resource: net::(ERR_FILE_NOT_FOUND|ERR_FAILED)/)) {
           browserLog.error(msg.text())
         }
         break
@@ -80,10 +79,10 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   page.on('pageerror', msgText => {
     log.fatal('browser-ERROR', msgText)
-    return STATUS_CODE.ERROR
+    process.exit(STATUS_CODE.ERROR)
   })
 
-  log.info(`Opening XHTML file (may take a few minutes)`)
+  log.info('Opening XHTML file (may take a few minutes)')
   log.debug(`Opening "${url}"`)
   await page.goto(url, {
     timeout: PAGE_LOAD_TIME
@@ -93,17 +92,18 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   // Collect code coverage of the browser JS
   await injectCoverageCollection(page)
 
-  await page.evaluate(() => {
+  const initFn = () => {
     window.__TYPESET_CONFIG = {
       isDone: false,
       isFailed: false,
       elementsToRemove: [],
       isDoneSwitching: false
     }
-  })
+  }
+  await page.evaluate(initFn)
 
   if (cssPath) {
-    log.info(`Injecting CSS...`)
+    log.info('Injecting CSS...')
     await page.mainFrame().addStyleTag({
       path: cssPath
     })
@@ -135,7 +135,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         console.info(`Extraction Progress: ${percent}%`)
         prevTime = now
       }
-      mathMap.push({xml, fontSize})
+      mathMap.push({ xml, fontSize })
       index++
     }
     return mathMap
@@ -148,7 +148,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   browser.close()
 
-  let allUniqueCss = new Set()
+  const allUniqueCss = new Set()
   let nextMathNodeIndex
   for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
     const start = batchSize * batch
@@ -157,8 +157,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     const [convertedMathML/*: Map<integer, {svg || html}> */, uniqueCss] = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start)
     allUniqueCss.add(uniqueCss)
 
-    log.debug(`Inserting converted math elements...`)
-    let convertedContent = []
+    log.debug('Inserting converted math elements...')
+    const convertedContent = []
     // sort the ids using numeric sort (default is string sort)
     for (const id of [...convertedMathML.keys()].sort((a, b) => a - b)) {
       const xml = convertedMathML.get(id)
@@ -171,18 +171,18 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
       convertedContent.push(xml)
       pageContent = pageContent.substr(nextMathNodeIndex + mathNodePlaceholder(id).length)
     }
-    await writeFile(output, convertedContent.join(''), {flag: batch === 0 ? 'w' : 'a'})
+    await writeFile(output, convertedContent.join(''), { flag: batch === 0 ? 'w' : 'a' })
   }
-  await writeFile(output, pageContent, {flag: 'a'})
+  await writeFile(output, pageContent, { flag: 'a' })
 
-  log.info(`Injecting MathJax-created CSS...`)
+  log.info('Injecting MathJax-created CSS...')
   pageContent = await readFile(output, 'utf-8')
-  await writeFile(output, pageContent.replace('</head>', `<style>${[...allUniqueCss.keys()].join('\n')}</style></head>`, 1))
+  await writeFile(output, pageContent.replace('</head>', `<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`, 1))
 
   log.info(`Content saved. Open "${output}" to see converted file.`)
 
-  let timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
-  let timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0
+  const timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
+  const timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0
   let timeOfEnd = ''
 
   if (timeOfEndInMin) {
@@ -197,6 +197,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
 async function injectCoverageCollection (page) {
   // From https://github.com/GoogleChrome/puppeteer/pull/1067/files
+  // Log out one of the page.evaluate() functions when running the tests to see what Istanbul expects
   if (global.__coverage__) {
     const coverageObjects = {}
     Object.keys(global.__coverage__).forEach(filename => {
@@ -226,10 +227,12 @@ async function injectCoverageCollection (page) {
         })
       }
       keys.forEach(key => {
-        window[`cov_${key}`] = {
-          f: createProxy([key, 'f']),
-          s: createProxy([key, 's']),
-          b: createProxy([key, 'b'])
+        window[`cov_${key}`] = () => {
+          return {
+            f: createProxy([key, 'f']),
+            s: createProxy([key, 's']),
+            b: createProxy([key, 'b'])
+          }
         }
       })
     }, Object.keys(coverageObjects))

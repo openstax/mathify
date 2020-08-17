@@ -10,15 +10,15 @@ const converter = require('./../converter')
 const log = bunyan.createLogger({
   name: 'node-typeset',
   level: process.env.LOG_LEVEL || 'info',
-  stream: new BunyanFormat({outputMode: process.env.LOG_FORMAT || 'short'})
+  stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
-let pathToInput = path.resolve('./typeset/tests/seed/test.xhtml')
-let pathToCss = path.resolve('./typeset/tests/seed/test.css')
-let pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
-let pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
-let pathToInputLatex = path.resolve('./typeset/tests/seed/test-latex.xhtml')
-let pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml')
+const pathToInput = path.resolve('./typeset/tests/seed/test.xhtml')
+const pathToCss = path.resolve('./typeset/tests/seed/test.css')
+const pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
+const pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
+const pathToInputLatex = path.resolve('./typeset/tests/seed/test-latex.xhtml')
+const pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml')
 
 beforeAll(() => {
   if (fileExists.sync(pathToOutput)) {
@@ -61,19 +61,19 @@ afterAll(() => {
 })
 
 test('Fail if user provide wrong path for input file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Fail if user provide wrong path for css file.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Success if converter finished without errors FORMAT HTML.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
     isOutputFile = true
@@ -84,7 +84,7 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
 }, 30000)
 
 test('Success if converter finished without errors FORMAT SVG.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
     isOutputFile = true
@@ -95,7 +95,7 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
 }, 30000)
 
 test('Success if convertered LaTeX functions with success.', async (done) => {
-  let res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputLatex)) {
     isOutputFile = true
@@ -112,8 +112,8 @@ test('Check if there are MathJaxNode classes instead mathML elements.', async (d
   })
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutput}`)
-  let res = await page.evaluate(/* istanbul ignore next */() => {
-    let res = {
+  const res = await page.evaluate(/* istanbul ignore next */() => {
+    const res = {
       mjNodeClasses: 0,
       mathMLElements: 0
     }
@@ -137,8 +137,8 @@ test('Check if there are SVGs instead mathML elements.', async (done) => {
   })
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutputSVG}`)
-  let res = await page.evaluate(/* istanbul ignore next */() => {
-    let res = {
+  const res = await page.evaluate(/* istanbul ignore next */() => {
+    const res = {
       svgs: 0,
       mathMLElements: 0
     }
@@ -162,8 +162,11 @@ test('Check if LaTeX functions was converted correctly.', async (done) => {
   })
   const page = await browser.newPage()
   await page.goto(`file://${pathToOutputLatex}`)
-  let res = await page.evaluate(/* istanbul ignore next */() => {
-    let res = {
+  const res = await page.evaluate(/* istanbul ignore next */() => {
+    // if (document.querySelector('parsererror')) {
+    //   throw new Error(`parsererror: ${document.querySelector('parsererror').textContent}`)
+    // }
+    const res = {
       dataMath: 0,
       mjNodeClasses: 0
     }

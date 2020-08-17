@@ -8,7 +8,7 @@ const converter = require('./converter')
 const log = bunyan.createLogger({
   name: 'node-typeset',
   level: process.env.LOG_LEVEL || 'info',
-  stream: new BunyanFormat({outputMode: process.env.LOG_FORMAT || 'short'})
+  stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
 const argv = yargs
@@ -39,7 +39,7 @@ const argv = yargs
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
 let outputFormat = 'html'
-let batchSize = Number(argv.batchSize) || 3000
+const batchSize = Number(argv.batchSize) || 3000
 
 if (argv.batchSize && !String(argv.batchSize).match(/^[0-9]+$/)) {
   throw new Error('Invalid batch size. Batch size should be an integer.')
@@ -50,22 +50,23 @@ if (argv.format) {
     outputFormat = argv.format.toLowerCase()
     log.debug(`Output format set to ${argv.format.toLowerCase()}`)
   } else {
-    log.error(`You provided wrong format. It will be set to default (html).`)
+    log.error('You provided wrong format. It will be set to default (html).')
   }
 } else {
-  log.warn(`No output format. It will be set to default (html).`)
+  log.warn('No output format. It will be set to default (html).')
 }
 
 if (!/\.xhtml$/.test(pathToInput)) {
-  throw new Error(`The input file must end with '.xhtml' so Chrome parses it as XML (strict) rather than HTML`)
+  throw new Error('The input file must end with \'.xhtml\' so Chrome parses it as XML (strict) rather than HTML')
 }
 
 if (!/\.xhtml$/.test(argv.output)) {
-  throw new Error(`The output file should end with '.xhtml'`)
+  throw new Error('The output file should end with \'.xhtml\'')
 }
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
 converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize)
+  .then(exitStatus => process.exit(exitStatus))
   .catch(err => {
     log.fatal(err)
     process.exit(111)
