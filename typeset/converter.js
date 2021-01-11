@@ -7,6 +7,10 @@ const pify = require('pify')
 const readFile = pify(fs.readFile)
 const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
+const hljs = require('highlight.js');
+const jsdom = require("jsdom");
+const { type } = require('os')
+const { JSDOM } = jsdom;
 
 const PAGE_LOAD_TIME = 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
 const PROGRESS_TIME = 10 * 1000 // 10 seconds
@@ -239,7 +243,26 @@ async function injectCoverageCollection (page) {
   }
 }
 
+const highlightCodeElements = (inputPath) => {
+  let inputFile
+
+  try {
+    const data = fs.readFileSync(inputPath, 'utf8')
+    inputFile = data.toString()
+  } catch (err) {
+    console.error(err)
+  }
+
+  let dom = new JSDOM(inputFile)
+  const preTagElements = dom.window.document.querySelector("pre").textContent
+  let highlightedCode = hljs.highlightAuto(preTagElements).value
+  console.log(highlightedCode)
+  
+}
+
+
 module.exports = {
   createMapOfMathMLElements,
+  highlightCodeElements,
   STATUS_CODE
 }

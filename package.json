@@ -13,6 +13,8 @@
     "bunyan-format": ">=0.2",
     "dotenv": ">=6",
     "file-exists": ">=5",
+    "highlight.js": "^10.5.0",
+    "jsdom": "^11.12.0",
     "mathjax": "^2.7.4",
     "mathjax-node": ">=2",
     "pify": ">=3",
