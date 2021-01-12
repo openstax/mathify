@@ -245,7 +245,7 @@ async function injectCoverageCollection (page) {
 
 const highlightCodeElements = (inputPath) => {
   let inputFile
-  
+
   try {
     const data = fs.readFileSync(inputPath, 'utf8')
     inputFile = data.toString()
@@ -259,7 +259,7 @@ const highlightCodeElements = (inputPath) => {
 
   const preTagElements = [ ... dom.window.document.querySelectorAll("pre") ] 
   preTagElements.forEach(pre => {
-    const highlightedCode = hljs.highlight('Python', pre.textContent).value  
+    const highlightedCode = hljs.highlightAuto(pre.textContent).value  
     pre.innerHTML = '<tempElement xmlns="http://www.w3.org/1999/xhtml">' + highlightedCode + '</tempElement>'
     if (pre.childNodes.length !== 1) {
       throw new Error ("Bug: Should have had one child")
@@ -281,7 +281,6 @@ const highlightCodeElements = (inputPath) => {
 
 // TODO: 
   //update tests (left a comment in typeset.test.js)
-  //change to autohighlight 
 
 
 module.exports = {
