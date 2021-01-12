@@ -60,6 +60,8 @@ afterAll(() => {
   }
 })
 
+//add another test that calls new function to check input and output also update the createMap ones below
+
 test('Fail if user provide wrong path for input file.', async (done) => {
   const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)

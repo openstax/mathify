@@ -9,8 +9,8 @@ const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js');
 const jsdom = require("jsdom");
-const { type } = require('os')
 const { JSDOM } = jsdom;
+const serialize = require("w3c-xmlserializer");
 
 const PAGE_LOAD_TIME = 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
 const PROGRESS_TIME = 10 * 1000 // 10 seconds
@@ -245,7 +245,7 @@ async function injectCoverageCollection (page) {
 
 const highlightCodeElements = (inputPath) => {
   let inputFile
-
+  
   try {
     const data = fs.readFileSync(inputPath, 'utf8')
     inputFile = data.toString()
@@ -253,12 +253,35 @@ const highlightCodeElements = (inputPath) => {
     console.error(err)
   }
 
-  let dom = new JSDOM(inputFile)
-  const preTagElements = dom.window.document.querySelector("pre").textContent
-  let highlightedCode = hljs.highlightAuto(preTagElements).value
-  console.log(highlightedCode)
+  const dom = new JSDOM(inputFile, {
+    contentType: "application/xhtml+xml"
+  })
+
+  const preTagElements = [ ... dom.window.document.querySelectorAll("pre") ] 
+  preTagElements.forEach(pre => {
+    const highlightedCode = hljs.highlight('Python', pre.textContent).value  
+    pre.innerHTML = '<tempElement xmlns="http://www.w3.org/1999/xhtml">' + highlightedCode + '</tempElement>'
+    if (pre.childNodes.length !== 1) {
+      throw new Error ("Bug: Should have had one child")
+    }
+    const tempElement = pre.firstElementChild
+    tempElement.remove()
+    const children = [... tempElement.childNodes]
+    children.forEach(c => {
+      pre.append(c)
+    })
+  });
+  const highlightedOutput = serialize(dom.window.document.documentElement)
+  fs.writeFile(inputPath, highlightedOutput, (err) => {
+    if (err) throw err;
+    console.log('Code snippets have been highlighted');
+  });
   
 }
+
+// TODO: 
+  //update tests (left a comment in typeset.test.js)
+  //change to autohighlight 
 
 
 module.exports = {
