@@ -7,10 +7,10 @@ const pify = require('pify')
 const readFile = pify(fs.readFile)
 const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
-const hljs = require('highlight.js');
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
-const serialize = require("w3c-xmlserializer");
+const hljs = require('highlight.js')
+const jsdom = require('jsdom')
+const { JSDOM } = jsdom
+const serialize = require('w3c-xmlserializer')
 
 const PAGE_LOAD_TIME = 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
 const PROGRESS_TIME = 10 * 1000 // 10 seconds
@@ -243,45 +243,58 @@ async function injectCoverageCollection (page) {
   }
 }
 
-const highlightCodeElements = (inputPath) => {
+const highlightCodeElements = (log, inputPath) => {
   let inputFile
+  const highlightPath = inputPath.replace('baked', 'highlight')
+
+  if (!fileExists.sync(inputPath)) {
+    log.error(`Input XHTML file not found: "${inputPath}"`)
+    return STATUS_CODE.ERROR
+  }
 
   try {
     const data = fs.readFileSync(inputPath, 'utf8')
     inputFile = data.toString()
   } catch (err) {
-    console.error(err)
+    log.error(`Error: "${err}`)
+    return STATUS_CODE.ERROR
   }
 
   const dom = new JSDOM(inputFile, {
-    contentType: "application/xhtml+xml"
+    contentType: 'application/xhtml+xml'
   })
 
-  const preTagElements = [ ... dom.window.document.querySelectorAll("pre") ] 
+  const preTagElements = [...dom.window.document.querySelectorAll('pre')]
   preTagElements.forEach(pre => {
-    const highlightedCode = hljs.highlightAuto(pre.textContent).value  
+    const langClass = pre.getAttribute('lang')
+    const highlightedCode = hljs.highlight(langClass, pre.textContent).value
     pre.innerHTML = '<tempElement xmlns="http://www.w3.org/1999/xhtml">' + highlightedCode + '</tempElement>'
     if (pre.childNodes.length !== 1) {
-      throw new Error ("Bug: Should have had one child")
+      throw new Error('Bug: Should have had one child')
     }
     const tempElement = pre.firstElementChild
     tempElement.remove()
-    const children = [... tempElement.childNodes]
+    const children = [...tempElement.childNodes]
     children.forEach(c => {
       pre.append(c)
     })
-  });
+  })
+
   const highlightedOutput = serialize(dom.window.document.documentElement)
-  fs.writeFile(inputPath, highlightedOutput, (err) => {
-    if (err) throw err;
-    console.log('Code snippets have been highlighted');
-  });
-  
+  fs.writeFile(highlightPath, highlightedOutput, (err) => {
+    if (err) {
+      log.error(`Error:"${err}"`)
+      return STATUS_CODE.ERROR
+    }
+    log.info('Code snippets have been highlighted')
+  })
+
+  return highlightPath
 }
 
-// TODO: 
-  //update tests (left a comment in typeset.test.js)
-
+// TODO:
+// address all codecov comments on github
+// figure out where to add the style sheet
 
 module.exports = {
   createMapOfMathMLElements,

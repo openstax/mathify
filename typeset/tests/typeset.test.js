@@ -60,10 +60,34 @@ afterAll(() => {
   }
 })
 
-//add another test that calls new function to check input and output also update the createMap ones below
+test('Fail if user provides wrong path for input file (Highlight).', async (done) => {
+  const res = await converter.highlightCodeElements('./wrong/path.xhtml')
+  expect(res).toBe(converter.STATUS_CODE.ERROR)
+  done()
+})
 
-test('Fail if user provide wrong path for input file.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
+test('Check if `pre` elements with lang attribute are highlighted', async (done) => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    devtools: process.env.BROWSER_DEBUGGER === 'true'
+  })
+  const page = await browser.newPage()
+  await page.goto(`file://${pathToOutput}`)
+  const res = await page.evaluate(() => {
+    const res = {
+      hljsClasses: 0
+    }
+    res.hljsClasses = document.getElementsByClassName('hljs-*').length
+    return res
+  })
+  await browser.close()
+
+  expect(res.hljsClasses).toBeGreaterThan(0)
+  done()
+})
+
+test('Fail if user provide wrong path for input file (Math).', async (done) => {
+  const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000) // change to highlight function
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
