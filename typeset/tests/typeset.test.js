@@ -13,7 +13,8 @@ const log = bunyan.createLogger({
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
-const pathToInput = path.resolve('./typeset/tests/seed/test.xhtml')
+const pathToHighlightInput = path.resolve('./typeset/tests/seed/test.baked.xhtml') // highlight
+const pathToHighlightOutput = path.resolve('./typeset/tests/seed/test.highlight.xhtml')
 const pathToCss = path.resolve('./typeset/tests/seed/test.css')
 const pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
 const pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
@@ -67,17 +68,18 @@ test('Fail if user provides wrong path for input file (Highlight).', async (done
 })
 
 test('Check if `pre` elements with lang attribute are highlighted', async (done) => {
+  converter.highlightCodeElements(log, pathToHighlightInput)
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
     devtools: process.env.BROWSER_DEBUGGER === 'true'
   })
   const page = await browser.newPage()
-  await page.goto(`file://${pathToOutput}`)
+  await page.goto(`file://${pathToHighlightOutput}`)
   const res = await page.evaluate(() => {
     const res = {
       hljsClasses: 0
     }
-    res.hljsClasses = document.getElementsByClassName('hljs-*').length
+    res.hljsClasses = document.querySelectorAll('pre > span[class*="hljs-"]').length
     return res
   })
   await browser.close()
@@ -93,13 +95,13 @@ test('Fail if user provide wrong path for input file (Math).', async (done) => {
 })
 
 test('Fail if user provide wrong path for css file.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToHighlightOutput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Success if converter finished without errors FORMAT HTML.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToHighlightOutput, pathToCss, pathToOutput, 'html', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
     isOutputFile = true
@@ -110,7 +112,7 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
 }, 30000)
 
 test('Success if converter finished without errors FORMAT SVG.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToHighlightOutput, pathToCss, pathToOutputSVG, 'svg', 3000)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
     isOutputFile = true
