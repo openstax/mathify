@@ -11,6 +11,7 @@ const hljs = require('highlight.js')
 const jsdom = require('jsdom')
 const { JSDOM } = jsdom
 const serialize = require('w3c-xmlserializer')
+const assert = require('assert').strict
 
 const PAGE_LOAD_TIME = 10 * 60 * 1000 // Wait 10 minutes before timing out (large books take a long time to open)
 const PROGRESS_TIME = 10 * 1000 // 10 seconds
@@ -244,7 +245,6 @@ async function injectCoverageCollection (page) {
 }
 
 const highlightCodeElements = (log, inputPath) => {
-  let inputFile
   const highlightPath = inputPath.replace('baked', 'highlight')
 
   if (!fileExists.sync(inputPath)) {
@@ -252,13 +252,8 @@ const highlightCodeElements = (log, inputPath) => {
     return STATUS_CODE.ERROR
   }
 
-  try {
-    const data = fs.readFileSync(inputPath, 'utf8')
-    inputFile = data.toString()
-  } catch (err) {
-    log.error(`Error: "${err}`)
-    return STATUS_CODE.ERROR
-  }
+  const data = fs.readFileSync(inputPath, 'utf8')
+  const inputFile = data.toString()
 
   const dom = new JSDOM(inputFile, {
     contentType: 'application/xhtml+xml'
@@ -268,10 +263,8 @@ const highlightCodeElements = (log, inputPath) => {
   preTagElements.forEach(pre => {
     const langClass = pre.getAttribute('lang')
     const highlightedCode = hljs.highlight(langClass, pre.textContent).value
-    pre.innerHTML = '<tempElement xmlns="http://www.w3.org/1999/xhtml">' + highlightedCode + '</tempElement>'
-    if (pre.childNodes.length !== 1) {
-      throw new Error('Bug: Should have had one child')
-    }
+    pre.innerHTML = `<tempElement xmlns="http://www.w3.org/1999/xhtml">${highlightedCode}</tempElement>`
+    assert.strictEqual(pre.childNodes.length, 1, 'BUG: should always have exactly one temp element')
     const tempElement = pre.firstElementChild
     tempElement.remove()
     const children = [...tempElement.childNodes]
@@ -281,20 +274,10 @@ const highlightCodeElements = (log, inputPath) => {
   })
 
   const highlightedOutput = serialize(dom.window.document.documentElement)
-  fs.writeFile(highlightPath, highlightedOutput, (err) => {
-    if (err) {
-      log.error(`Error:"${err}"`)
-      return STATUS_CODE.ERROR
-    }
-    log.info('Code snippets have been highlighted')
-  })
+  fs.writeFileSync(highlightPath, highlightedOutput)
 
   return highlightPath
 }
-
-// TODO:
-// address all codecov comments on github
-// figure out where to add the style sheet
 
 module.exports = {
   createMapOfMathMLElements,
