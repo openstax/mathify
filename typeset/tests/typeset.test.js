@@ -61,7 +61,7 @@ afterAll(() => {
 })
 
 test('Fail if user provides wrong path for input file (Highlight).', async (done) => {
-  const res = await converter.highlightCodeElements('./wrong/path.xhtml')
+  const res = await converter.highlightCodeElements(log, './wrong/path.xhtml')
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
