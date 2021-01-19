@@ -259,9 +259,10 @@ const highlightCodeElements = (log, inputPath) => {
     contentType: 'application/xhtml+xml'
   })
 
-  const preTagElements = [...dom.window.document.querySelectorAll('pre')]
+  const preTagElements = [...dom.window.document.querySelectorAll('pre[data-lang]')]
   preTagElements.forEach(pre => {
-    const langClass = pre.getAttribute('lang')
+    const langClass = pre.getAttribute('data-lang').toLowerCase()
+    // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
     const highlightedCode = hljs.highlight(langClass, pre.textContent).value
     pre.innerHTML = `<tempElement xmlns="http://www.w3.org/1999/xhtml">${highlightedCode}</tempElement>`
     assert.strictEqual(pre.childNodes.length, 1, 'BUG: should always have exactly one temp element')

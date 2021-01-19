@@ -88,6 +88,34 @@ test('Check if `pre` elements with lang attribute are highlighted', async (done)
   done()
 })
 
+test('Fail if `pre` tag has no data-lang attribute value', async (done) => {
+  converter.highlightCodeElements(log, pathToHighlightInput)
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    devtools: process.env.BROWSER_DEBUGGER === 'true'
+  })
+  const page = await browser.newPage()
+  await page.goto(`file://${pathToHighlightOutput}`)
+  const res = await page.evaluate(() => {
+    const preTagElements = document.querySelectorAll('pre[data-lang]')
+    const res = {
+      missingAttrValue: false,
+      missing: 0
+    }
+    preTagElements.forEach(pre => {
+      if (pre.getAttribute('data-lang') === '') {
+        res.missing++
+        res.missingAttrValue = true
+      }
+    })
+    return res
+  })
+  await browser.close()
+  expect(res.missingAttrValue).toEqual(false)
+  expect(res.missing).toEqual(0)
+  done()
+})
+
 test('Fail if user provide wrong path for input file (Math).', async (done) => {
   const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000) // change to highlight function
   expect(res).toBe(converter.STATUS_CODE.ERROR)
