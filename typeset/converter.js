@@ -260,9 +260,9 @@ async function highlightCodeElements (page) {
     preTagElements.forEach(async pre => {
       const langClass = pre.getAttribute('data-lang').toLowerCase()
       // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
-      const highlightedCode = await highlight(langClass, pre.textContent)
+      const highlightedCode = await highlight(langClass, pre.textContent) // eslint-disable-line no-undef
       pre.innerHTML = `<tempElement xmlns="http://www.w3.org/1999/xhtml">${highlightedCode}</tempElement>`
-      await checkChildren(pre.childNodes.length)
+      await checkChildren(pre.childNodes.length) // eslint-disable-line no-undef
       const tempElement = pre.firstElementChild
       tempElement.remove()
       const children = [...tempElement.childNodes]
