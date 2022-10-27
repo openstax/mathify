@@ -76,7 +76,7 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number, el: Element}, ...] */, outputFormat, total, done) => {
+const convertMathML = async (log, mathEntries/* [{mathSource: string, el: Element}, ...] */, outputFormat, total, done) => {
   if (!mjStarted) {
     startAPI(log)
   }
@@ -88,7 +88,7 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number,
   let numDone = done
   const convertedCss = new Set()
   let index = 0
-  const promises = mathEntries.map(({ xml: mathSource, fontSize, el }) => {
+  const promises = mathEntries.map(({ mathSource, el }) => {
     const id = done + index
     index++
     const typesetConfig = {
@@ -96,8 +96,8 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number,
       format: mathSource.match('^<([^:]+:)?math') ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
-      css: outputFormat === 'html',
-      ex: fontSize
+      css: outputFormat === 'html'
+      // ex: fontSize
     }
     log.debug(`Typeset config: ${JSON.stringify(typesetConfig)}`)
     return mjAPI.typeset(typesetConfig)

@@ -8,7 +8,6 @@ const pify = require('pify')
 const writeFile = pify(fs.writeFile)
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
-const assert = require('assert').strict
 
 // Status codes
 const STATUS_CODE = {
@@ -17,6 +16,7 @@ const STATUS_CODE = {
 }
 
 const serializer = new XMLSerializer()
+const select = useNamespaces({ mml: 'http://www.w3.org/1998/Math/MathML', h: 'http://www.w3.org/1999/xhtml' })
 
 class ParseError extends Error { }
 
@@ -55,7 +55,6 @@ function parseXML (fileContent, filename) {
 
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
   const timeOfStart = new Date().getTime()
-  const select = useNamespaces({ mml: 'http://www.w3.org/1998/Math/MathML' })
 
   // Check that the XHTML and CSS files exist
   if (!fileExists.sync(inputPath)) {
@@ -77,12 +76,11 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   log.debug(`Parsed "${inputPath}"`)
 
   // Inject code highlighting
-  // await highlightCodeElements(page)
-  log.error('TODO: Re-add code highlighting without requiring a browser')
+  await highlightCodeElements(xmlRoot)
 
-  /* mathEntries: Array<{ xml, fontSize }> */
-  const mmlEntries = select('//mml:math', xmlRoot).map(el => ({ el, xml: serializer.serializeToString(el) }))
-  const texEntries = select('//*[@data-math]', xmlRoot).map(el => ({ el, xml: el.getAttribute('data-math') }))
+  /* mathEntries: Array<{ el, mathSource }> */
+  const mmlEntries = select('//mml:math', xmlRoot).map(el => ({ el, mathSource: serializer.serializeToString(el) }))
+  const texEntries = select('//*[@data-math]', xmlRoot).map(el => ({ el, mathSource: el.getAttribute('data-math') }))
   const mathEntries = [...mmlEntries, ...texEntries]
 
   const allUniqueCss = new Set()
@@ -122,32 +120,17 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   return STATUS_CODE.OK
 }
 
-async function highlightCodeElements (pageContentStr) {
-  await page.exposeFunction(
-    'highlight',
-    (languageName, code) => hljs.highlight(languageName, code).value
-  )
-  await page.exposeFunction(
-    'checkChildren',
-    (numChildren) => {
-      assert.strictEqual(numChildren, 1, 'BUG: should always have exactly one temp element')
-    }
-  )
-  await page.evaluate(() => {
-    const preTagElements = [...document.querySelectorAll('pre[data-lang]')]
-    preTagElements.forEach(async pre => {
-      const langClass = pre.getAttribute('data-lang').toLowerCase()
-      // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
-      const highlightedCode = await highlight(langClass, pre.textContent) // eslint-disable-line no-undef
-      pre.innerHTML = `<tempElement xmlns="http://www.w3.org/1999/xhtml">${highlightedCode}</tempElement>`
-      await checkChildren(pre.childNodes.length) // eslint-disable-line no-undef
-      const tempElement = pre.firstElementChild
-      tempElement.remove()
-      const children = [...tempElement.childNodes]
-      children.forEach(c => {
-        pre.append(c)
-      })
-    })
+async function highlightCodeElements (xmlRoot) {
+  select('//h:pre[@data-lang]', xmlRoot).forEach(el => {
+    // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
+    const language = el.getAttribute('data-lang').toLowerCase()
+    const inputCode = el.textContent
+    const outputHtml = hljs.highlight(language, inputCode).value
+    const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`)
+    // el.parentNode.replaceChild(newNode, el)
+
+    el.removeChild(el.firstChild)
+    Array.from(newNode.childNodes).forEach(child => el.appendChild(child))
   })
 }
 
