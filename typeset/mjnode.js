@@ -76,7 +76,7 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}, ...] */, outputFormat, total, done) => {
+const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number, el: Element}, ...] */, outputFormat, total, done) => {
   if (!mjStarted) {
     startAPI(log)
   }
@@ -88,7 +88,7 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
   let numDone = done
   const convertedCss = new Set()
   let index = 0
-  const promises = mathEntries.map(({ xml: mathSource, fontSize }) => {
+  const promises = mathEntries.map(({ xml: mathSource, fontSize, el }) => {
     const id = done + index
     index++
     const typesetConfig = {
@@ -121,7 +121,7 @@ const convertMathML = async (log, mathEntries/* [{xml: string, fontSize: number}
         if (html) {
           html = html.replace(/&nbsp;/g, '&#160;')
         }
-        convertedMathMLElements.set(id, svg || html)
+        convertedMathMLElements.set(el, svg || html)
         // store css in a separate map to deduplicate
         if (css != null) {
           convertedCss.add(css)

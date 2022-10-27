@@ -29,6 +29,3 @@ Options:
 You can also create `.env` file for bunyan managment. Use `LOG_LEVEL=info` for proper errors.
 
 MathJax will be injected to the input file and after this process content will be serialized.
-
-//Assumptions//
-We asume that input is xhtml file without &nbsp (non-breaking characters) because if it is not then browser will crash and puppeteer will not be able to see whole content.
