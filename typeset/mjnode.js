@@ -96,8 +96,8 @@ const convertMathML = async (log, mathEntries/* [{mathSource: string, el: Elemen
       format: mathSource.match('^<([^:]+:)?math') ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
-      css: outputFormat === 'html'
-      // ex: fontSize
+      css: outputFormat === 'html',
+      ex: 11 // pixels tall
     }
     log.debug(`Typeset config: ${JSON.stringify(typesetConfig)}`)
     return mjAPI.typeset(typesetConfig)
