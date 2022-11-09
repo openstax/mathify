@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node ./typeset/start.js @*",
     "start:debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "standard --fix --verbose && jest",
+    "test": "jest && standard --fix --verbose",
     "watch": "jest --watch",
     "jest": "jest"
   },
@@ -17,7 +17,8 @@
     "mathjax": "^2.7.4",
     "mathjax-node": ">=2",
     "pify": ">=3",
-    "puppeteer": ">=1",
+    "xmldom": "^0.6.0",
+    "xpath-ts": "^1.3.13",
     "yargs": ">=15"
   },
   "devDependencies": {
