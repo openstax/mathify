@@ -121,12 +121,16 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 }
 
 async function highlightCodeElements (xmlRoot) {
-  select('//h:pre[@data-lang]', xmlRoot).forEach(el => {
+  const matches = [
+    ...select('//h:pre[@data-lang]', xmlRoot),
+    ...select('//h:code[@data-lang]', xmlRoot)]
+
+  matches.forEach(el => {
     // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
     const language = el.getAttribute('data-lang').toLowerCase()
     const inputCode = el.textContent
     const outputHtml = hljs.highlight(language, inputCode).value
-    const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`)
+    const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
     // el.parentNode.replaceChild(newNode, el)
 
     el.removeChild(el.firstChild)

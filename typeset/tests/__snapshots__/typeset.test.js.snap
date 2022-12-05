@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Convert inline code tags and block pre tags 1`] = `
+"<html xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\">
+  <body itemscope=\\"itemscope\\" itemtype=\\"http://schema.org/Book\\">
+
+<pre data-lang=\\"python\\">
+  my_integer = <span class=\\"hljs-number\\">5</span>
+  my_floating_point = <span class=\\"hljs-number\\">26.2</span>
+  my_Boolean = <span class=\\"hljs-literal\\">True</span>
+  my_string = <span class=\\"hljs-string\\">'characters'</span>
+</pre>
+
+<p>
+  <code data-lang=\\"python\\">hello = <span class=\\"hljs-number\\">5</span></code>
+</p>
+
+</body>
+</html>"
+`;
