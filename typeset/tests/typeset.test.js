@@ -19,6 +19,9 @@ const pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
 const pathToInputLatex = path.resolve('./typeset/tests/seed/test-latex.xhtml')
 const pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml')
 
+const pathToCodeInput = path.resolve('./typeset/tests/seed/test-code.xhtml')
+const pathToCodeOutput = path.resolve('./typeset/tests/seed/test-code.output.xhtml')
+
 beforeAll(() => {
   if (fileExists.sync(pathToOutput)) {
     fs.unlink(pathToOutput, (err) => {
@@ -103,3 +106,11 @@ test('Success if convertered LaTeX functions with success.', async (done) => {
   expect(isOutputFile).toBeTruthy()
   done()
 }, 30000)
+
+test('Convert inline code tags and block pre tags', async (done) => {
+  const res = await converter.createMapOfMathMLElements(log, pathToCodeInput, pathToCss, pathToCodeOutput, 'html', 3000)
+  expect(fileExists.sync(pathToCodeOutput))
+  expect(res).toBe(converter.STATUS_CODE.OK)
+  expect(fs.readFileSync(pathToCodeOutput, 'utf-8')).toMatchSnapshot()
+  done()
+}, 3000)
