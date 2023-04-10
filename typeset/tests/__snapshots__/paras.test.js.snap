@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`integration with xml scanner 1`] = `
+"<?xml version='1.0' encoding='UTF-8'?>
+<html xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\">
+  Replaced math from 3,3 to 7,12
+  <img xmlns:why=\\"would-you-do-this\\" why:maybe=\\"for this reason\\"/>
+  <div xmlns:otherns=\\"something-i-made-up\\">
+    <a>
+      <b data-math=\\"i &lt; 3pi\\">
+        <c>
+          Replaced math from 13,11 to 15,20
+        </c>
+      </b>
+    </a>
+  </div>
+  <div>
+    <c>
+        Other stuff that is not math
+    </c>
+  </div>
+</html>
+"
+`;
+
+exports[`nothing to replace 1`] = `
+"This is a test
+1
+2
+3"
+`;
+
+exports[`replace more lines 1`] = `
+"yo1
+yo4
+yo5"
+`;
+
+exports[`replace stuff 1`] = `
+"This IS 1
+2
+3"
+`;
+
+exports[`replace stuff with larger chunk size 1`] = `
+"This IS 1
+2
+3"
+`;
+
+exports[`two replacements on one line 1`] = `
+"This test
+1
+2
+3"
+`;
