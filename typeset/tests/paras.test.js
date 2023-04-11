@@ -40,9 +40,9 @@ test('replace stuff', () => {
   PARAS(
     [
       // Replace ' is' with ' IS'
-      { posStart: [1, 5], posEnd: [1, 8], chunk: ' IS' },
+      { posStart: [1, 5], posEnd: [1, 8], substitution: ' IS' },
       // Replace 'a test\n' with ''
-      { posStart: [1, 9], posEnd: [2, 1], chunk: '' }
+      { posStart: [1, 9], posEnd: [2, 1], substitution: '' }
     ],
     reader,
     writer
@@ -57,9 +57,9 @@ test('replace stuff with larger chunk size', () => {
   PARAS(
     [
       // Replace ' is' with ' IS'
-      { posStart: [1, 5], posEnd: [1, 8], chunk: ' IS' },
+      { posStart: [1, 5], posEnd: [1, 8], substitution: ' IS' },
       // Replace 'a test\n' with ''
-      { posStart: [1, 9], posEnd: [2, 1], chunk: '' }
+      { posStart: [1, 9], posEnd: [2, 1], substitution: '' }
     ],
     reader,
     writer
@@ -86,9 +86,9 @@ test('two replacements on one line', () => {
   PARAS(
     [
       // replace ' is' with ''
-      { posStart: [1, 5], posEnd: [1, 8], chunk: '' },
+      { posStart: [1, 5], posEnd: [1, 8], substitution: '' },
       // replace 'a ' with ''
-      { posStart: [1, 9], posEnd: [1, 11], chunk: '' }
+      { posStart: [1, 9], posEnd: [1, 11], substitution: '' }
     ],
     reader,
     writer
@@ -108,7 +108,7 @@ yo5`
   const writer = new FakeWriteStream()
   PARAS(
     [
-      { posStart: [2, 1], posEnd: [4, 1], chunk: '' }
+      { posStart: [2, 1], posEnd: [4, 1], substitution: '' }
     ],
     reader,
     writer
@@ -155,12 +155,11 @@ test('integration with xml scanner', () => {
     parser,
     [{ tag: 'math' }],
     match => {
-      match.chunk = `Replaced math from ${match.posStart} to ${match.posEnd}`
+      match.substitution = `Replaced math from ${match.posStart} to ${match.posEnd}`
       mathEntries.push(match)
     }
   )
   parser.write(testDocument)
-  console.log(mathEntries)
   PARAS(mathEntries, reader, writer)
   reader.start(testDocument, 63535)
   expect(writer.getValue()).toMatchSnapshot()

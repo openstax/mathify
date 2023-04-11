@@ -76,20 +76,20 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathEntries/* [{mathSource: string, el: Element}, ...] */, outputFormat, total, done) => {
+const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
   if (!mjStarted) {
     startAPI(log)
   }
 
   log.debug(`There are ${total} elements to process...`)
   log.debug('Starting conversion of mapped MathML elements with mathjax-node...')
-  const convertedMathMLElements = new Map()
   let prevTime = Date.now()
   let numDone = done
   const convertedCss = new Set()
   let index = 0
-  const promises = mathEntries.map(({ mathSource, el }) => {
+  const promises = mathEntries.map(entry => {
     const id = done + index
+    const mathSource = entry.mathSource
     index++
     const typesetConfig = {
       math: mathSource,
@@ -121,7 +121,7 @@ const convertMathML = async (log, mathEntries/* [{mathSource: string, el: Elemen
         if (html) {
           html = html.replace(/&nbsp;/g, '&#160;')
         }
-        convertedMathMLElements.set(el, svg || html)
+        entry.substitution = svg || html
         // store css in a separate map to deduplicate
         if (css != null) {
           convertedCss.add(css)
@@ -131,7 +131,7 @@ const convertMathML = async (log, mathEntries/* [{mathSource: string, el: Elemen
 
   await Promise.all(promises)
   log.info(`Converted ${numDone} elements.`)
-  return [convertedMathMLElements, [...convertedCss.keys()]]
+  return [...convertedCss.keys()]
 }
 
 module.exports = {
