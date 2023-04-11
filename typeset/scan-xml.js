@@ -57,6 +57,7 @@ function scanXML (saxParser, matchersRaw, onMatch) {
     }
     for (const recorderGroup of recorderGroups.values()) {
       if (recorderGroup.length === 0) continue
+      // I wish I could figure a way to only build this string once
       const attr = Object.entries(node.attributes).map(([k, v]) =>
         `${k}="${escapeXml(v)}"`
       ).join(' ')
@@ -91,7 +92,11 @@ function scanXML (saxParser, matchersRaw, onMatch) {
     for (const recorderGroup of recorderGroups.values()) {
       if (recorderGroup.length === 0) continue
       for (const { sb } of recorderGroup) {
-        sb.push(`</${tag}>`)
+        if (saxParser.tag.isSelfClosing) {
+          sb.push(sb.pop().slice(0, -1) + '/>')
+        } else {
+          sb.push(`</${tag}>`)
+        }
       }
       if (recorderGroup[recorderGroup.length - 1].tag === tag) {
         const recorder = recorderGroup.pop()
