@@ -85,3 +85,38 @@ test('throws an error with bad matchers', () => {
   expect(exception).toBeDefined()
   expect(exception.toString()).toContain('Unknown matcher type')
 })
+
+test('throws an error when there is cdata', () => {
+  const matches = []
+  const testCdata = '<root><![CDATA[Some character data]]></root>'
+  const parser = sax.parser(true)
+  scanXML(parser, [{ tag: 'root' }], match => matches.push(match))
+  parser.write(testCdata)
+  expect(matches).toMatchSnapshot()
+  expect(matches.length).toBe(1)
+})
+
+test('records comments', () => {
+  const matches = []
+  const testComments = `\
+<root>
+  <a>
+    <!--
+      This is
+      a
+      multiline
+      comment
+    -->
+  </a>
+</root>
+`
+  const parser = sax.parser(true)
+  scanXML(
+    parser,
+    [{ tag: 'a' }],
+    match => matches.push(match)
+  )
+  parser.write(testComments)
+  expect(matches).toMatchSnapshot()
+  expect(matches.length).toBe(1)
+})

@@ -108,14 +108,22 @@ function scanXML (saxParser, matchersRaw, onMatch) {
     }
   }
 
-  saxParser.ontext = function (text) {
+  const simpleAppend = function (text) {
     for (const recorderGroup of recorderGroups.values()) {
       if (recorderGroup.length === 0) continue
       for (const { sb } of recorderGroup) {
-        sb.push(escapeXml(text))
+        sb.push(text)
       }
     }
   }
+
+  saxParser.ontext = text => simpleAppend(escapeXml(text))
+
+  saxParser.oncomment = comment => simpleAppend(`<!--${comment}-->`)
+
+  saxParser.onopencdata = () => simpleAppend('<![CDATA[')
+  saxParser.oncdata = cdata => simpleAppend(escapeXml(cdata))
+  saxParser.onclosecdata = () => simpleAppend(']]>')
 }
 
 module.exports = {

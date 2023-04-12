@@ -179,3 +179,54 @@ Array [
   },
 ]
 `;
+
+exports[`records comments 1`] = `
+Array [
+  Object {
+    "element": "<a  >
+    <!--
+      This is
+      a
+      multiline
+      comment
+    -->
+  </a>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "a",
+    },
+    "posEnd": Array [
+      9,
+      7,
+    ],
+    "posStart": Array [
+      2,
+      3,
+    ],
+    "tag": "a",
+  },
+]
+`;
+
+exports[`throws an error when there is cdata 1`] = `
+Array [
+  Object {
+    "element": "<root  ><![CDATA[Some character data]]></root>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "root",
+    },
+    "posEnd": Array [
+      1,
+      45,
+    ],
+    "posStart": Array [
+      1,
+      1,
+    ],
+    "tag": "root",
+  },
+]
+`;
