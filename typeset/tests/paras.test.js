@@ -23,6 +23,10 @@ class FakeWriteStream {
     this.sb.push(chunk)
   }
 
+  end () {
+
+  }
+
   getValue () {
     return this.sb.join('')
   }
@@ -163,4 +167,55 @@ test('integration with xml scanner', () => {
   PARAS(mathEntries, reader, writer)
   reader.start(testDocument, 63535)
   expect(writer.getValue()).toMatchSnapshot()
+})
+
+test('no substitution', () => {
+  const longerFake = `\
+yo1
+yo2
+yo3
+yo4
+yo5`
+  const reader = new FakeReadStream()
+  const writer = new FakeWriteStream()
+  let exception
+  try {
+    PARAS(
+      [
+        { posStart: [1, 1], posEnd: [1, 2] }
+      ],
+      reader,
+      writer
+    )
+    reader.start(longerFake, 63535)
+  } catch (e) {
+    exception = e
+  }
+  expect(exception).toBeDefined()
+})
+
+test('overlapping replacements', () => {
+  const longerFake = `\
+yo1
+yo2
+yo3
+yo4
+yo5`
+  const reader = new FakeReadStream()
+  const writer = new FakeWriteStream()
+  let exception
+  try {
+    PARAS(
+      [
+        { posStart: [1, 1], posEnd: [2, 2], substitution: '' },
+        { posStart: [1, 2], posEnd: [1, 3], substitution: '' }
+      ],
+      reader,
+      writer
+    )
+    reader.start(longerFake, 63535)
+  } catch (e) {
+    exception = e
+  }
+  expect(exception).not.toBeDefined()
 })

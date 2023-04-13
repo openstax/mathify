@@ -81,8 +81,7 @@ function PARAS (replacements, input, output) {
 
   input.on('data', chunk => {
     let lineStartIdx = 0
-    let i = 0
-    for (; i < chunk.length; i++) {
+    for (let i = 0; i < chunk.length; i++) {
       if (chunk[i] === '\n') {
         lineNumber++
         handleLine(chunk.slice(lineStartIdx, i + 1))
@@ -97,6 +96,7 @@ function PARAS (replacements, input, output) {
   input.on('end', () => {
     lineNumber++
     handleLine('')
+    output.end()
   })
 }
 

@@ -128,7 +128,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     const writer = fs.createWriteStream(outputPath)
     writer.on('error', err => reject(err))
     reader.on('error', err => reject(err))
-    reader.on('end', () => resolve())
+    writer.on('finish', () => resolve())
     PARAS(sortedReplacements, reader, writer)
   })
 
