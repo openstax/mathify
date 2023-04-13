@@ -1,5 +1,5 @@
 /*
-1. 
+1.
 2. If there is a multiline replacement and more replacements on this line
 3. If there is a multiline replacement and no additional replacements on this line
 4. If there is a multiline replacement and no additional replacements
@@ -9,7 +9,7 @@
 8. If there are more replacements, but none on this line
 */
 
-function expectValue(v, msg='Expected a value but got nothing') {
+function expectValue (v, msg = 'Expected a value but got nothing') {
   if (v == null) {
     throw new Error(msg)
   }
@@ -58,6 +58,8 @@ function PARAS (replacements, input, output) {
         // We cannot do any more now
         if (replacement.posEnd[0] > lineNumber) {
           replaceTo = replacement.posEnd
+          // When there are replacements that fall between this one and its end line,
+          // they are implicitly replaced. Just remove them from the list.
           while (replacements.length && replacements[0].posStart[0] < replaceTo[0]) {
             replacements.shift()
           }

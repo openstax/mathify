@@ -16,5 +16,6 @@ exports[`Convert inline code tags and block pre tags 1`] = `
 </p>
 
 </body>
-</html>"
+</html>
+"
 `;

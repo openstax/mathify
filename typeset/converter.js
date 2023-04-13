@@ -1,7 +1,6 @@
 const path = require('path')
 const fileExists = require('file-exists')
 const { DOMParser, XMLSerializer } = require('xmldom')
-const { useNamespaces } = require('xpath-ts')
 const { scanXML } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
@@ -16,12 +15,9 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const serializer = new XMLSerializer()
-const select = useNamespaces({ mml: 'http://www.w3.org/1998/Math/MathML', h: 'http://www.w3.org/1999/xhtml' })
-
 class ParseError extends Error { }
 
-function parseXML (fileContent, filename) {
+function parseXML (xmlString) {
   const locator = { lineNumber: 0, columnNumber: 0 }
   const cb = () => {
     const pos = {
@@ -38,11 +34,11 @@ function parseXML (fileContent, filename) {
       fatalError: cb
     }
   })
-  const doc = p.parseFromString(fileContent)
+  const doc = p.parseFromString(xmlString)
   return doc
 }
 
-function looseTagEq(tag, eq) {
+function looseTagEq (tag, eq) {
   return tag.endsWith(`:${eq}`) || tag === eq
 }
 
@@ -63,6 +59,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   const output = path.resolve(outputPath)
   const mathEntries = []
   const codeEntries = []
+  // Keep an array of all the replacements in the order they appeared in within the file
   const sortedReplacements = []
   let head = undefined
 
@@ -98,6 +95,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         sortedReplacements.push(match)
       } else {
         codeEntries.push(match)
+        sortedReplacements.push(match)
       }
     }
   )
@@ -109,13 +107,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   })
   log.debug(`Parsed "${inputPath}"`)
 
-  // Inject code highlighting
-  // await highlightCodeElements(xmlRoot)
-
-  /* mathEntries: Array<{ el, mathSource }> */
-  // const mmlEntries = select('//mml:math', xmlRoot).map(el => ({ el, mathSource: serializer.serializeToString(el) }))
-  // const texEntries = select('//*[@data-math]', xmlRoot).map(el => ({ el, mathSource: el.getAttribute('data-math') }))
-  // const mathEntries = [...mmlEntries, ...texEntries]
+  // Prepare code highlighting
+  await highlightCodeElements(codeEntries)
 
   const allUniqueCss = new Set()
   for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
@@ -124,19 +117,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
     const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start)
     allUniqueCss.add(uniqueCss)
-
-    // log.debug('Inserting converted math elements...')
-    // sort the ids using numeric sort (default is string sort)
-    // for (const el of convertedMathML.keys()) {
-    //   const xmlStr = convertedMathML.get(el)
-    //   const convertedNode = parseXML(xmlStr)
-    //   el.parentNode.replaceChild(convertedNode, el)
-    // }
   }
-  // const pageContent = serializer.serializeToString(xmlRoot)
 
-  // log.info('Injecting MathJax-created CSS...')
-  // await writeFile(output, pageContent.replace('</head>', `<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`, 1))
   if (head !== undefined) {
     head.substitution = `${head.element.slice(0, -7)}<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`
   }
@@ -166,21 +148,33 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   return STATUS_CODE.OK
 }
 
-async function highlightCodeElements (xmlRoot) {
-  const matches = [
-    ...select('//h:pre[@data-lang]', xmlRoot),
-    ...select('//h:code[@data-lang]', xmlRoot)]
+function cleanNamespaces (el, keepNamespaces) {
+  const serializer = new XMLSerializer()
+  let serialized = serializer.serializeToString(el)
+  Object.values(el.attributes)
+    .filter(attr =>
+      attr.name &&
+      attr.name.startsWith('xmlns') &&
+      keepNamespaces.indexOf(attr.name) === -1
+    )
+    .map(attr => ` ${attr.name}="${attr.value}"`)
+    .forEach(nsDecl => { serialized = serialized.replace(nsDecl, '') })
+  return serialized
+}
 
-  matches.forEach(el => {
+async function highlightCodeElements (codeEntries) {
+  codeEntries.forEach(entry => {
+    const el = parseXML(entry.element).documentElement
     // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
     const language = el.getAttribute('data-lang').toLowerCase()
     const inputCode = el.textContent
     const outputHtml = hljs.highlight(language, inputCode).value
     const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
-    // el.parentNode.replaceChild(newNode, el)
+    const localNamespaces = Object.keys(entry.node.attributes).filter(k => k.startsWith('xmlns'))
 
     el.removeChild(el.firstChild)
     Array.from(newNode.childNodes).forEach(child => el.appendChild(child))
+    entry.substitution = cleanNamespaces(el, localNamespaces)
   })
 }
 
