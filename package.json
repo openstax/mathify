@@ -9,6 +9,7 @@
     "jest": "jest"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.7",
     "bunyan": ">=1",
     "bunyan-format": ">=0.2",
     "dotenv": ">=6",
@@ -16,9 +17,6 @@
     "highlight.js": "^10.5.0",
     "mathjax": "^2.7.4",
     "mathjax-node": ">=2",
-    "pify": ">=3",
-    "xmldom": "^0.6.0",
-    "xpath-ts": "^1.3.13",
     "yargs": ">=15"
   },
   "devDependencies": {

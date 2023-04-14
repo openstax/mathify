@@ -1,6 +1,6 @@
 const path = require('path')
 const fileExists = require('file-exists')
-const { DOMParser, XMLSerializer } = require('xmldom')
+const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const { scanXML } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
