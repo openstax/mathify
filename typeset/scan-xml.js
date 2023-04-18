@@ -98,7 +98,7 @@ function scanXML (saxParser, matchersRaw, onMatch) {
       }
     }
 
-    while (recorders.length && recorders[recorders.length - 1].depth === currentDepth) {
+    if (recorders.length && recorders[recorders.length - 1].depth === currentDepth) {
       const recorder = recorders.pop()
       recorder.posEnd = [saxParser.line + 1, saxParser.column + 1]
       recorder.element = recorder.sb.join('')
