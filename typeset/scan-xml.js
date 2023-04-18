@@ -40,7 +40,7 @@ function reduceMatchers (matchers) {
 function scanXML (saxParser, matchersRaw, onMatch) {
   const matchers = reduceMatchers(matchersRaw)
   const recorders = []
-  const namespaceStack = []
+  const nsStack = []
   let currentDepth = 0
   let nsString = ''
 
@@ -48,14 +48,14 @@ function scanXML (saxParser, matchersRaw, onMatch) {
     currentDepth++
     for (const k in node.attributes) {
       if (k.startsWith('xmlns')) {
-        namespaceStack.push({
-          tag: node.name,
+        nsStack.push({
+          depth: currentDepth,
           namespaces: Object.entries(node.attributes)
             .filter(([k, _]) => k.startsWith('xmlns'))
             .map(([k, v]) => `${k}="${v}"`)
             .join(' ')
         })
-        nsString = namespaceStack.map(({ namespaces }) => namespaces).join(' ')
+        nsString = nsStack.map(({ namespaces }) => namespaces).join(' ')
         break
       }
     }
@@ -86,10 +86,11 @@ function scanXML (saxParser, matchersRaw, onMatch) {
   }
 
   saxParser.onclosetag = function (tag) {
-    if (namespaceStack.length && tag === namespaceStack[namespaceStack.length - 1].tag) {
-      namespaceStack.pop()
-      nsString = namespaceStack.map(({ namespaces }) => namespaces).join(' ')
+    if (nsStack.length && nsStack[nsStack.length - 1].depth === currentDepth) {
+      nsStack.pop()
+      nsString = nsStack.map(({ namespaces }) => namespaces).join(' ')
     }
+
     for (const { sb } of recorders) {
       if (saxParser.tag.isSelfClosing) {
         sb.push(sb.pop().slice(0, -1) + '/>')
