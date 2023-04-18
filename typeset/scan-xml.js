@@ -39,11 +39,13 @@ function reduceMatchers (matchers) {
 
 function scanXML (saxParser, matchersRaw, onMatch) {
   const matchers = reduceMatchers(matchersRaw)
-  const recorderGroups = new Map(matchers.map(m => [m, []]))
+  const recorders = []
   const namespaceStack = []
+  let currentDepth = 0
   let nsString = ''
 
   saxParser.onopentag = function (node) {
+    currentDepth++
     for (const k in node.attributes) {
       if (k.startsWith('xmlns')) {
         namespaceStack.push({
@@ -57,32 +59,29 @@ function scanXML (saxParser, matchersRaw, onMatch) {
         break
       }
     }
-    for (const recorderGroup of recorderGroups.values()) {
-      if (recorderGroup.length === 0) continue
-      // I wish I could figure a way to only build this string once
+
+    for (const { sb } of recorders) {
       const attr = Object.entries(node.attributes).map(([k, v]) =>
         `${k}="${escapeXml(v)}"`
       ).join(' ')
-      for (const { sb } of recorderGroup) {
-        sb.push(`<${node.name} ${attr}>`)
-      }
+      sb.push(`<${node.name} ${attr}>`)
     }
+
     for (const matcher of matchers) {
-      if (matcher(node)) {
-        const recorderGroup = recorderGroups.get(matcher)
-        const attr = Object.entries(node.attributes).map(([k, v]) =>
+      if (!matcher(node)) continue
+      const attr = Object.entries(node.attributes).map(([k, v]) =>
           `${k}="${escapeXml(v)}"`
-        ).join(' ')
-        recorderGroup.push({
-          tag: node.name,
-          node,
-          sb: [`<${node.name} ${nsString} ${attr}>`],
-          posStart: [
-            saxParser.line + 1,
-            saxParser.column - (saxParser.position - saxParser.startTagPosition)
-          ]
-        })
-      }
+      ).join(' ')
+      recorders.push({
+        depth: currentDepth,
+        node,
+        tag: node.name,
+        sb: [`<${node.name} ${nsString} ${attr}>`],
+        posStart: [
+          saxParser.line + 1,
+          saxParser.column - (saxParser.position - saxParser.startTagPosition)
+        ]
+      })
     }
   }
 
@@ -91,31 +90,28 @@ function scanXML (saxParser, matchersRaw, onMatch) {
       namespaceStack.pop()
       nsString = namespaceStack.map(({ namespaces }) => namespaces).join(' ')
     }
-    for (const recorderGroup of recorderGroups.values()) {
-      if (recorderGroup.length === 0) continue
-      for (const { sb } of recorderGroup) {
-        if (saxParser.tag.isSelfClosing) {
-          sb.push(sb.pop().slice(0, -1) + '/>')
-        } else {
-          sb.push(`</${tag}>`)
-        }
-      }
-      if (recorderGroup[recorderGroup.length - 1].tag === tag) {
-        const recorder = recorderGroup.pop()
-        recorder.posEnd = [saxParser.line + 1, saxParser.column + 1]
-        recorder.element = recorder.sb.join('')
-        delete recorder.sb
-        onMatch(recorder)
+    for (const { sb } of recorders) {
+      if (saxParser.tag.isSelfClosing) {
+        sb.push(sb.pop().slice(0, -1) + '/>')
+      } else {
+        sb.push(`</${tag}>`)
       }
     }
+
+    while (recorders.length && recorders[recorders.length - 1].depth === currentDepth) {
+      const recorder = recorders.pop()
+      recorder.posEnd = [saxParser.line + 1, saxParser.column + 1]
+      recorder.element = recorder.sb.join('')
+      delete recorder.sb
+      delete recorder.depth
+      onMatch(recorder)
+    }
+    currentDepth--
   }
 
   const simpleAppend = function (text) {
-    for (const recorderGroup of recorderGroups.values()) {
-      if (recorderGroup.length === 0) continue
-      for (const { sb } of recorderGroup) {
-        sb.push(text)
-      }
+    for (const { sb } of recorders) {
+      sb.push(text)
     }
   }
 

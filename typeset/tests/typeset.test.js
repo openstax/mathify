@@ -63,7 +63,7 @@ afterAll(() => {
   }
 })
 
-function getHashFile(fpath) {
+function getHashFile (fpath) {
   return new Promise((resolve, reject) => {
     const hash = createHash('sha256')
     const reader = fs.createReadStream(fpath).setEncoding('utf8')
