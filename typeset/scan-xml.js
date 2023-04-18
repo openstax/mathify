@@ -1,3 +1,7 @@
+function looseTagEq (tag, eq) {
+  return tag.endsWith(`:${eq}`) || tag === eq
+}
+
 function escapeXml (unsafe) {
   return unsafe.replace(/[<>&'"]/g, function (c) {
     switch (c) {
@@ -16,9 +20,7 @@ function reduceMatchers (matchers) {
     for (const k of Object.keys(matcher)) {
       switch (k) {
         case 'tag':
-          conditions.push(node => (
-            node.name.endsWith(`:${matcher.tag}`) || node.name === matcher.tag
-          ))
+          conditions.push(node => looseTagEq(node.name, matcher.tag))
           break
         case 'attr':
           conditions.push(node => (
@@ -127,5 +129,6 @@ function scanXML (saxParser, matchersRaw, onMatch) {
 }
 
 module.exports = {
-  scanXML
+  scanXML,
+  looseTagEq
 }

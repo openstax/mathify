@@ -1,7 +1,7 @@
 const path = require('path')
 const fileExists = require('file-exists')
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
-const { scanXML } = require('./scan-xml')
+const { scanXML, looseTagEq } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
 
@@ -38,10 +38,6 @@ function parseXML (xmlString) {
   return doc
 }
 
-function looseTagEq (tag, eq) {
-  return tag.endsWith(`:${eq}`) || tag === eq
-}
-
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
   const timeOfStart = new Date().getTime()
 
@@ -61,13 +57,13 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   const codeEntries = []
   // Keep an array of all the replacements in the order they appeared in within the file
   const sortedReplacements = []
-  let head = undefined
+  let head
 
   log.info('Opening XHTML file (may take a few minutes)')
   log.debug(`Opening "${inputPath}"`)
   const inputContent = fs.createReadStream(inputPath).setEncoding('utf8')
   log.debug(`Opened "${inputPath}"`)
-  // const xmlRoot = parseXML(inputContent)
+
   scanXML(
     parser, [
       { tag: 'math' },

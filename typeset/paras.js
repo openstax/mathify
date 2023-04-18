@@ -1,9 +1,9 @@
 /*
-1.
+1. If there are no replacements remaining
 2. If there is a multiline replacement and more replacements on this line
 3. If there is a multiline replacement and no additional replacements on this line
 4. If there is a multiline replacement and no additional replacements
-5. If there are no additional replacements
+5. If the last replacement has been handled and no pending multi-line replacements
 6. If there are multiple replacements on this line
 7. If the current replacement extends past this line
 8. If there are more replacements, but none on this line
