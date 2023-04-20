@@ -1,0 +1,232 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handles namespaces correctly 1`] = `
+Array [
+  Object {
+    "element": "<m:math xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" >
+    <m:msup ><m:mn >2</m:mn><m:mn >2</m:mn></m:msup><m:mi >=</m:mi><m:mn >4</m:mn>
+    <m:mn >3</m:mn><m:mi >&gt;</m:mi><m:mn >2</m:mn>
+    <m:mi >&apos;</m:mi>x
+</m:math>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "m:math",
+    },
+    "posEnd": Array [
+      7,
+      10,
+    ],
+    "posStart": Array [
+      3,
+      1,
+    ],
+    "tag": "m:math",
+  },
+  Object {
+    "element": "<img xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" xmlns:why=\\"would-you-do-this\\" xmlns:why=\\"would-you-do-this\\" why:maybe=\\"for this reason\\"/>",
+    "node": Object {
+      "attributes": Object {
+        "why:maybe": "for this reason",
+        "xmlns:why": "would-you-do-this",
+      },
+      "isSelfClosing": true,
+      "name": "img",
+    },
+    "posEnd": Array [
+      8,
+      69,
+    ],
+    "posStart": Array [
+      8,
+      5,
+    ],
+    "tag": "img",
+  },
+  Object {
+    "element": "<c xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" xmlns:otherns=\\"something-i-made-up\\" >
+                    this should have all the namespaces
+                </c>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "c",
+    },
+    "posEnd": Array [
+      14,
+      21,
+    ],
+    "posStart": Array [
+      12,
+      17,
+    ],
+    "tag": "c",
+  },
+  Object {
+    "element": "<b xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" xmlns:otherns=\\"something-i-made-up\\" data-math=\\"i &lt; 3pi\\">
+                <c >
+                    this should have all the namespaces
+                </c>
+            </b>",
+    "node": Object {
+      "attributes": Object {
+        "data-math": "i < 3pi",
+      },
+      "isSelfClosing": false,
+      "name": "b",
+    },
+    "posEnd": Array [
+      15,
+      17,
+    ],
+    "posStart": Array [
+      11,
+      13,
+    ],
+    "tag": "b",
+  },
+  Object {
+    "element": "<c xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" >
+            this should only have top-level namespaces (mathml, epub, xhtml)
+        </c>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "c",
+    },
+    "posEnd": Array [
+      21,
+      13,
+    ],
+    "posStart": Array [
+      19,
+      9,
+    ],
+    "tag": "c",
+  },
+]
+`;
+
+exports[`handles nested elements correctly 1`] = `
+Array [
+  Object {
+    "element": "<b  data-self-closing=\\"true\\"/>",
+    "node": Object {
+      "attributes": Object {
+        "data-self-closing": "true",
+      },
+      "isSelfClosing": true,
+      "name": "b",
+    },
+    "posEnd": Array [
+      9,
+      49,
+    ],
+    "posStart": Array [
+      9,
+      19,
+    ],
+    "tag": "b",
+  },
+  Object {
+    "element": "<b  >
+              inside second b
+              <c >
+                  something &amp; &quot;something else&quot;
+                  <b data-self-closing=\\"true\\"/>
+              </c>
+          </b>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "b",
+    },
+    "posEnd": Array [
+      11,
+      15,
+    ],
+    "posStart": Array [
+      5,
+      11,
+    ],
+    "tag": "b",
+  },
+  Object {
+    "element": "<b  >
+          inside first b
+          <b >
+              inside second b
+              <c >
+                  something &amp; &quot;something else&quot;
+                  <b data-self-closing=\\"true\\"/>
+              </c>
+          </b>
+      </b>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "b",
+    },
+    "posEnd": Array [
+      12,
+      11,
+    ],
+    "posStart": Array [
+      3,
+      7,
+    ],
+    "tag": "b",
+  },
+]
+`;
+
+exports[`records comments 1`] = `
+Array [
+  Object {
+    "element": "<a  >
+    <!--
+      This is
+      a
+      multiline
+      comment
+    -->
+  </a>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "a",
+    },
+    "posEnd": Array [
+      9,
+      7,
+    ],
+    "posStart": Array [
+      2,
+      3,
+    ],
+    "tag": "a",
+  },
+]
+`;
+
+exports[`throws an error when there is cdata 1`] = `
+Array [
+  Object {
+    "element": "<root  ><![CDATA[Some character data]]></root>",
+    "node": Object {
+      "attributes": Object {},
+      "isSelfClosing": false,
+      "name": "root",
+    },
+    "posEnd": Array [
+      1,
+      45,
+    ],
+    "posStart": Array [
+      1,
+      1,
+    ],
+    "tag": "root",
+  },
+]
+`;

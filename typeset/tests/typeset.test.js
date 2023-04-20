@@ -5,6 +5,7 @@ const fileExists = require('file-exists')
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
 const converter = require('./../converter')
+const { createHash } = require('crypto')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
@@ -62,6 +63,18 @@ afterAll(() => {
   }
 })
 
+function getHashFile (fpath) {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256')
+    const reader = fs.createReadStream(fpath).setEncoding('utf8')
+    reader.on('data', chunk => hash.update(chunk))
+    reader.on('error', err => reject(err))
+    reader.on('end', () => {
+      resolve(hash.digest('hex'))
+    })
+  })
+}
+
 test('Fail if user provide wrong path for input file (Math).', async (done) => {
   const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
@@ -82,6 +95,7 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
   }
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
+  expect(await getHashFile(pathToOutput)).toMatchSnapshot()
   done()
 }, 30000)
 
@@ -93,6 +107,7 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
   }
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
+  expect(await getHashFile(pathToOutputSVG)).toMatchSnapshot()
   done()
 }, 30000)
 
@@ -104,6 +119,8 @@ test('Success if convertered LaTeX functions with success.', async (done) => {
   }
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
+  expect(await getHashFile(pathToOutputLatex)).toMatchSnapshot()
+
   done()
 }, 30000)
 
