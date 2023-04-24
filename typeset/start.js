@@ -24,6 +24,11 @@ const argv = yargs
     alias: 'o',
     describe: 'Output XHTML File'
   })
+  .option('highlight', {
+    alias: 'h',
+    default: false,
+    describe: 'Enable insertion of code highlighting'
+  })
   .option('format', {
     alias: 'f',
     describe: 'Output format for MathJax Conversion: html, svg. Default: html'
@@ -46,7 +51,7 @@ if (argv.batchSize && !String(argv.batchSize).match(/^[0-9]+$/)) {
 }
 
 if (argv.format) {
-  if (['svg', 'html'].indexOf(argv.format.toLowerCase()) >= 0) {
+  if (['svg', 'html', 'mathml'].indexOf(argv.format.toLowerCase()) >= 0) {
     outputFormat = argv.format.toLowerCase()
     log.debug(`Output format set to ${argv.format.toLowerCase()}`)
   } else {
@@ -65,7 +70,7 @@ if (!/\.xhtml$/.test(argv.output)) {
 }
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize)
+converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight)
   .then(exitStatus => process.exit(exitStatus))
   .catch(err => {
     log.fatal(err)

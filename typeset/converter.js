@@ -38,7 +38,7 @@ function parseXML (xmlString) {
   return doc
 }
 
-const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize) => {
+const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight) => {
   const timeOfStart = new Date().getTime()
 
   // Check that the XHTML and CSS files exist
@@ -64,14 +64,26 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   const inputContent = fs.createReadStream(inputPath).setEncoding('utf8')
   log.debug(`Opened "${inputPath}"`)
 
+  const matchers = [
+    { attr: 'data-math' },
+    { tag: 'head' }
+  ]
+
+  // I fear what might happen if we try to convert from mathml to mathml
+  if (outputFormat !== 'mathml') {
+    log.debug('Adding matcher for mathml...')
+    matchers.push({ tag: 'math' })
+  }
+
+  if (highlight) {
+    log.debug('Adding matchers for code highlighting...')
+    matchers.push({ tag: 'pre', attr: 'data-lang' })
+    matchers.push({ tag: 'code', attr: 'data-lang' })
+  }
+
   scanXML(
-    parser, [
-      { tag: 'math' },
-      { attr: 'data-math' },
-      { tag: 'pre', attr: 'data-lang' },
-      { tag: 'code', attr: 'data-lang' },
-      { tag: 'head' }
-    ],
+    parser,
+    matchers,
     match => {
       if (looseTagEq(match.node.name, 'math') || 'data-math' in match.node.attributes) {
         const replacement = {

@@ -96,6 +96,7 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
       format: mathSource.match('^<([^:]+:)?math') ? 'MathML' : 'inline-TeX', // "inline-TeX", "TeX", "MathML"
       svg: outputFormat === 'svg',
       html: outputFormat === 'html',
+      mml: outputFormat === 'mathml',
       css: outputFormat === 'html',
       ex: 11 // pixels tall
     }
@@ -103,7 +104,7 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
     return mjAPI.typeset(typesetConfig)
       .then((result) => {
         const { errors, svg, css } = result
-        let { html } = result // later, remove &nbsp; since it is not valid XHTML
+        let { html, mml } = result // later, remove &nbsp; since it is not valid XHTML
         if (errors) {
           log.fatal(errors)
           throw new Error(`Problem converting using MathJax. id="${id}"`)
@@ -120,8 +121,10 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
         // remove &nbsp; since it is not valid XHTML
         if (html) {
           html = html.replace(/&nbsp;/g, '&#160;')
+        } else if (mml && mml.indexOf('&nbsp;') !== -1) {
+          throw new Error('I thought this output was more strict!')
         }
-        entry.substitution = svg || html
+        entry.substitution = svg || html || mml
         // store css in a separate map to deduplicate
         if (css != null) {
           convertedCss.add(css)
