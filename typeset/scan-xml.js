@@ -21,14 +21,14 @@ function reduceMatchers (matchers) {
       switch (k) {
         case 'tag':
           conditions.push(node => looseTagEq(node.name, matcher.tag))
-          break
+          continue
         case 'attr':
           conditions.push(node => (
             Object.keys(node.attributes).some(k =>
               k.endsWith(`:${matcher.attr}`) || k === matcher.attr
             )
           ))
-          break
+          continue
         default:
           throw new Error(`Unknown matcher type "${k}"`)
       }
@@ -41,6 +41,7 @@ function scanXML (saxParser, matchersRaw, onMatch) {
   const matchers = reduceMatchers(matchersRaw)
   const recorders = []
   const nsStack = []
+  let nsPrefixes = []
   let currentDepth = 0
   let nsString = ''
 
@@ -48,30 +49,38 @@ function scanXML (saxParser, matchersRaw, onMatch) {
     currentDepth++
     for (const k in node.attributes) {
       if (k.startsWith('xmlns')) {
-        nsStack.push({
-          depth: currentDepth,
-          namespaces: Object.entries(node.attributes)
-            .filter(([k, _]) => k.startsWith('xmlns'))
-            .map(([k, v]) => `${k}="${v}"`)
+        const newNamespaces = Object.entries(node.attributes)
+          .filter(([k, _]) => k.startsWith('xmlns') && !nsPrefixes.includes(k))
+        if (newNamespaces.length !== 0) {
+          nsStack.push({
+            depth: currentDepth,
+            namespaces: newNamespaces
+          })
+          newNamespaces.forEach(([k, _]) => nsPrefixes.push(k))
+          nsString = nsStack
+            .map(({ namespaces }) => namespaces
+              .map(([k, v]) => `${k}="${v}"`)
+              .join(' '))
             .join(' ')
-        })
-        nsString = nsStack.map(({ namespaces }) => namespaces).join(' ')
+        }
         break
       }
     }
 
     for (const { sb } of recorders) {
-      const attr = Object.entries(node.attributes).map(([k, v]) =>
-        `${k}="${escapeXml(v)}"`
-      ).join(' ')
+      const attr = Object.entries(node.attributes)
+        .filter(([k, _]) => !k.startsWith('xmlns'))
+        .map(([k, v]) => `${k}="${escapeXml(v)}"`)
+        .join(' ')
       sb.push(`<${node.name} ${attr}>`)
     }
 
     for (const matcher of matchers) {
       if (!matcher(node)) continue
-      const attr = Object.entries(node.attributes).map(([k, v]) =>
-          `${k}="${escapeXml(v)}"`
-      ).join(' ')
+      const attr = Object.entries(node.attributes)
+        .filter(([k, _]) => !k.startsWith('xmlns'))
+        .map(([k, v]) => `${k}="${escapeXml(v)}"`)
+        .join(' ')
       recorders.push({
         depth: currentDepth,
         node,
@@ -87,8 +96,13 @@ function scanXML (saxParser, matchersRaw, onMatch) {
 
   saxParser.onclosetag = function (tag) {
     if (nsStack.length && nsStack[nsStack.length - 1].depth === currentDepth) {
-      nsStack.pop()
-      nsString = nsStack.map(({ namespaces }) => namespaces).join(' ')
+      const removed = nsStack.pop().namespaces.map(([k, _]) => k)
+      nsPrefixes = nsPrefixes.filter(prefix => !removed.includes(prefix))
+      nsString = nsStack
+        .map(({ namespaces }) => namespaces
+          .map(([k, v]) => `${k}="${v}"`)
+          .join(' '))
+        .join(' ')
     }
 
     for (const { sb } of recorders) {
