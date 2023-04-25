@@ -19,6 +19,7 @@ const pathToOutput = path.resolve('./typeset/tests/test-output.xhtml')
 const pathToOutputSVG = path.resolve('./typeset/tests/test-output-svg.xhtml')
 const pathToInputLatex = path.resolve('./typeset/tests/seed/test-latex.xhtml')
 const pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml')
+const pathToOutputMML = path.resolve('./typeset/tests/test-output-mathml.xhtml')
 
 const pathToCodeInput = path.resolve('./typeset/tests/seed/test-code.xhtml')
 const pathToCodeOutput = path.resolve('./typeset/tests/seed/test-code.output.xhtml')
@@ -38,6 +39,12 @@ beforeAll(() => {
 
   if (fileExists.sync(pathToOutputLatex)) {
     fs.unlink(pathToOutputLatex, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToOutputMML)) {
+    fs.unlink(pathToOutputMML, (err) => {
       if (err) throw err
     })
   }
@@ -61,6 +68,12 @@ afterAll(() => {
       if (err) throw err
     })
   }
+
+  if (fileExists.sync(pathToOutputMML)) {
+    fs.unlink(pathToOutputMML, (err) => {
+      if (err) throw err
+    })
+  }
 })
 
 function getHashFile (fpath) {
@@ -76,19 +89,19 @@ function getHashFile (fpath) {
 }
 
 test('Fail if user provide wrong path for input file (Math).', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000, true)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Fail if user provide wrong path for css file.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000, true)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
   done()
 })
 
 test('Success if converter finished without errors FORMAT HTML.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
     isOutputFile = true
@@ -100,7 +113,7 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
 }, 30000)
 
 test('Success if converter finished without errors FORMAT SVG.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
     isOutputFile = true
@@ -112,7 +125,7 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
 }, 30000)
 
 test('Success if convertered LaTeX functions with success.', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputLatex)) {
     isOutputFile = true
@@ -124,8 +137,21 @@ test('Success if convertered LaTeX functions with success.', async (done) => {
   done()
 }, 30000)
 
+test('Success if convertered LaTeX to mathml with success.', async (done) => {
+  const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputMML, 'mathml', 3000, true)
+  let isOutputFile = false
+  if (fileExists.sync(pathToOutputMML)) {
+    isOutputFile = true
+  }
+  expect(res).toBe(converter.STATUS_CODE.OK)
+  expect(isOutputFile).toBeTruthy()
+  expect(await getHashFile(pathToOutputMML)).toMatchSnapshot()
+
+  done()
+}, 30000)
+
 test('Convert inline code tags and block pre tags', async (done) => {
-  const res = await converter.createMapOfMathMLElements(log, pathToCodeInput, pathToCss, pathToCodeOutput, 'html', 3000)
+  const res = await converter.createMapOfMathMLElements(log, pathToCodeInput, pathToCss, pathToCodeOutput, 'html', 3000, true)
   expect(fileExists.sync(pathToCodeOutput))
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(fs.readFileSync(pathToCodeOutput, 'utf-8')).toMatchSnapshot()

@@ -25,3 +25,5 @@ exports[`Success if converter finished without errors FORMAT HTML. 1`] = `"4ec8f
 exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"5005e621d1920ebc61e54f571746fc225242b8212c848b8595888505d57b66f4"`;
 
 exports[`Success if convertered LaTeX functions with success. 1`] = `"1597bf77d3971a31fcd50daef5654847946ac512a4b63b397fe25c4951bfba75"`;
+
+exports[`Success if convertered LaTeX to mathml with success. 1`] = `"191de1c689a0957cd6bd9bf7909f8f17a5c8afe1c4add71aea2017eb7b75f11d"`;

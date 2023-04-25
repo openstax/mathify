@@ -24,7 +24,7 @@ Array [
     "tag": "m:math",
   },
   Object {
-    "element": "<img xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" xmlns:why=\\"would-you-do-this\\" xmlns:why=\\"would-you-do-this\\" why:maybe=\\"for this reason\\"/>",
+    "element": "<img xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\" xmlns:why=\\"would-you-do-this\\" why:maybe=\\"for this reason\\"/>",
     "node": Object {
       "attributes": Object {
         "why:maybe": "for this reason",
