@@ -179,7 +179,7 @@ async function highlightCodeElements (codeEntries) {
     const hasLineNumbers = el.getAttribute('class').indexOf('line-numbering') !== -1
     const inputCode = el.textContent
     let outputHtml = hljs.highlight(language, inputCode).value
-    if (true) {
+    if (hasLineNumbers) {
       outputHtml = hljsLineNumbers.addCodeLineNumbers(outputHtml)
     }
     const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
