@@ -11,8 +11,17 @@ exports[`Convert inline code tags and block pre tags 1`] = `
   my_string = <span class=\\"hljs-string\\">'characters'</span>
 </pre>
 
+<pre lang=\\"python\\">
+  print(<span class=\\"hljs-string\\">'Hi'</span>)
+  a = b + c
+</pre>
+
 <p>
   <code data-lang=\\"python\\">hello = <span class=\\"hljs-number\\">5</span></code>
+</p>
+
+<p>
+  <code lang=\\"python\\">print(<span class=\\"hljs-number\\">5</span>)</code>
 </p>
 
 </body>
