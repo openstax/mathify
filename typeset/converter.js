@@ -8,6 +8,7 @@ const sax = require('sax')
 const fs = require('fs')
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
+const hljsLineNumbers = require('./hljs-line-numbers')
 
 // Status codes
 const STATUS_CODE = {
@@ -175,6 +176,7 @@ async function highlightCodeElements (codeEntries) {
     const el = parseXML(entry.element).documentElement
     // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
     const language = el.getAttribute('data-lang').toLowerCase()
+    const hasLineNumbers = el.getAttribute('class').indexOf('line-numbering') !== -1
     const inputCode = el.textContent
     let outputHtml = hljs.highlight(language, inputCode).value
     if (hasLineNumbers) {
