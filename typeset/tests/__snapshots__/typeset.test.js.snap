@@ -10,8 +10,17 @@ exports[`Convert inline code tags and block pre tags 1`] = `
   <code class=\\"line-numbering\\" data-lang=\\"python\\"><table class=\\"hljs-ln\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">hello = <span class=\\"hljs-number\\">5</span></td></tr></table></code>
 </p>
 
+<pre lang=\\"python\\">
+  print(<span class=\\"hljs-string\\">'Hi'</span>)
+  a = b + c
+</pre>
+
 <p>
   <code data-lang=\\"python\\">hello = <span class=\\"hljs-number\\">5</span></code>
+</p>
+
+<p>
+  <code lang=\\"python\\">print(<span class=\\"hljs-number\\">5</span>)</code>
 </p>
 
 </body>

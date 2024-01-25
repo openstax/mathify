@@ -78,8 +78,15 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   if (highlight) {
     log.debug('Adding matchers for code highlighting...')
-    matchers.push({ tag: 'pre', attr: 'data-lang' })
-    matchers.push({ tag: 'code', attr: 'data-lang' })
+
+    const tags = ['pre', 'code'];
+    const attributes = ['data-lang', 'lang'];
+
+    for (let i = 0; i < tags.length; i++) {
+      for (let j = 0; j < attributes.length; j++) {
+        matchers.push({ tag: tags[i], attr: attributes[j] });
+      }
+    }
   }
 
   scanXML(
@@ -171,11 +178,15 @@ function cleanNamespaces (el, keepNamespaces) {
   return serialized
 }
 
+function getLanguage (el, attr) {
+  return el.getAttribute(attr).toLowerCase()
+}
+
 async function highlightCodeElements (codeEntries) {
   codeEntries.forEach(entry => {
     const el = parseXML(entry.element).documentElement
     // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
-    const language = el.getAttribute('data-lang').toLowerCase()
+    const language = getLanguage(el, 'data-lang') || getLanguage(el, 'lang')
     const hasLineNumbers = el.getAttribute('class').indexOf('line-numbering') !== -1
     const inputCode = el.textContent
     let outputHtml = hljs.highlight(language, inputCode).value
