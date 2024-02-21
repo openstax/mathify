@@ -1,4 +1,5 @@
 const TABLE_NAME = 'hljs-ln'
+const TABLE_TYPE = 'unnumbered'
 const LINE_NAME = 'hljs-ln-line'
 const CODE_BLOCK_NAME = 'hljs-ln-code'
 const NUMBERS_BLOCK_NAME = 'hljs-ln-numbers'
@@ -56,7 +57,7 @@ function addCodeLineNumbers (inputHtml) {
         lines[i].length > 0 ? lines[i] : ' '
       ])
   }
-  return format('<table class="{0}">{1}</table>', [TABLE_NAME, html])
+  return format('<table class="{0} {1}">{2}</table>', [TABLE_NAME, TABLE_TYPE, html])
 }
 
 function getLines (text) {

@@ -4,16 +4,16 @@ exports[`Convert inline code tags and block pre tags 1`] = `
 "<html xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\">
   <body itemscope=\\"itemscope\\" itemtype=\\"http://schema.org/Book\\">
 
-<pre class=\\"line-numbering\\" data-lang=\\"python\\"><table class=\\"hljs-ln\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">my_integer = <span class=\\"hljs-number\\">5</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"2\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"2\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"2\\">  my_floating_point = <span class=\\"hljs-number\\">26.2</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"3\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"3\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"3\\">  my_Boolean = <span class=\\"hljs-literal\\">True</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"4\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"4\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"4\\">  my_string = <span class=\\"hljs-string\\">'characters'</span></td></tr></table></pre>
-
-<p>
-  <code class=\\"line-numbering\\" data-lang=\\"python\\"><table class=\\"hljs-ln\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\"></div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">hello = <span class=\\"hljs-number\\">5</span></td></tr></table></code>
-</p>
+<pre class=\\"line-numbering\\" data-lang=\\"python\\"><table class=\\"hljs-ln unnumbered\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\">1</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">my_integer = <span class=\\"hljs-number\\">5</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"2\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"2\\">2</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"2\\">  my_floating_point = <span class=\\"hljs-number\\">26.2</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"3\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"3\\">3</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"3\\">  my_Boolean = <span class=\\"hljs-literal\\">True</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"4\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"4\\">4</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"4\\">  my_string = <span class=\\"hljs-string\\">'characters'</span></td></tr></table></pre>
 
 <pre lang=\\"python\\">
   print(<span class=\\"hljs-string\\">'Hi'</span>)
   a = b + c
 </pre>
+
+<p>
+  <code class=\\"line-numbering\\" data-lang=\\"python\\"><table class=\\"hljs-ln unnumbered\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\">1</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">hello = <span class=\\"hljs-number\\">5</span></td></tr></table></code>
+</p>
 
 <p>
   <code data-lang=\\"python\\">hello = <span class=\\"hljs-number\\">5</span></code>
