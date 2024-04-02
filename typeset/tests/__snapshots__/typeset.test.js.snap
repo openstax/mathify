@@ -35,3 +35,12 @@ exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"5005e6
 exports[`Success if convertered LaTeX functions with success. 1`] = `"1597bf77d3971a31fcd50daef5654847946ac512a4b63b397fe25c4951bfba75"`;
 
 exports[`Success if convertered LaTeX to mathml with success. 1`] = `"191de1c689a0957cd6bd9bf7909f8f17a5c8afe1c4add71aea2017eb7b75f11d"`;
+
+exports[`something 1`] = `
+"<p><math xmlns=\\"http://www.w3.org/1998/Math/MathML\\" alttext=\\"\\\\frac56\\">
+  <mfrac>
+    <mn>5</mn>
+    <mn>6</mn>
+  </mfrac>
+</math></p>"
+`;
