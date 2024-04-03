@@ -4,7 +4,8 @@ const { DOMParser } = require('@xmldom/xmldom')
 
 class ParseError extends Error { }
 
-function parseXML (xmlString, warn = console.warn) {
+function parseXML (xmlString, options) {
+  const { warn = console.warn, mimeType = 'text/xml' } = options
   const locator = { lineNumber: 0, columnNumber: 0 }
   const cb = () => {
     const pos = {
@@ -21,7 +22,7 @@ function parseXML (xmlString, warn = console.warn) {
       fatalError: cb
     }
   })
-  const doc = p.parseFromString(xmlString)
+  const doc = p.parseFromString(xmlString, mimeType)
   return doc
 }
 
@@ -55,11 +56,16 @@ class MemoryReadStream extends MemoryStream {
     process.nextTick(() => {
       let offset = 0
       const chunks = Math.ceil(content.length / chunkSize)
-      for (let i = 0; i < chunks; i++) {
-        this.emit('data', content.slice(offset, offset + chunkSize))
-        offset += chunkSize
+      try {
+        for (let i = 0; i < chunks; i++) {
+          this.emit('data', content.slice(offset, offset + chunkSize))
+          offset += chunkSize
+        }
+      } catch (err) {
+        this.emit('error', err)
+      } finally {
+        this.emit('end')
       }
-      this.emit('end')
     });
     return this
   }
@@ -72,7 +78,11 @@ class MemoryWriteStream extends MemoryStream {
   }
 
   write (chunk) {
-    this.sb.push(chunk)
+    try {
+      this.sb.push(chunk)
+    } catch (err) {
+      this.emit('error', err)
+    }
   }
 
   end () {
