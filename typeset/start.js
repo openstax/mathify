@@ -87,7 +87,8 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
         log.warn(
           `${inputPath}:${name} - ${msg.replace(/\n/g, ' - ').replace(/\t/g, ' ')}`
         )
-      }
+      },
+      mimeType: 'text/html'
     })
     try {
       const el = parseHTML(
