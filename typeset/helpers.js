@@ -4,8 +4,8 @@ const { DOMParser } = require('@xmldom/xmldom')
 
 class ParseError extends Error { }
 
-function parseXML (xmlString, options) {
-  const { warn = console.warn, mimeType = 'text/xml' } = options ?? {}
+function parseXML (xmlString, options = {}) {
+  const { warn = console.warn, mimeType = 'text/xml' } = options
   const locator = { lineNumber: 0, columnNumber: 0 }
   const cb = () => {
     const pos = {
