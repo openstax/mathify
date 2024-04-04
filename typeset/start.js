@@ -89,11 +89,11 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
         )
       }
     })
-    const el = parseHTML(
-      `<tempElement xmlns="http://www.w3.org/1999/xhtml">${value}</tempElement>`
-    ).documentElement
-    const src = serializer.serializeToString(el)
     try {
+      const el = parseHTML(
+        `<tempElement xmlns="http://www.w3.org/1999/xhtml">${value}</tempElement>`
+      ).documentElement
+      const src = serializer.serializeToString(el)
       await converter.createMapOfMathMLElements(
         log,
         () => new MemoryReadStream(src),
