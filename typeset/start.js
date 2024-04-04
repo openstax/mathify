@@ -73,7 +73,7 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
   const inputJSON = JSON.parse(fs.readFileSync(inputPath, { encoding: 'utf-8' }))
   const serializer = new XMLSerializer()
   log.info(inputPath)
-  await walkJSON(inputJSON, async ({ parent, name, value }) => {
+  await walkJSON(inputJSON, async ({ parent, name, value, fqPath }) => {
     if (
       typeof value !== 'string' ||
       parent == null ||
@@ -122,7 +122,7 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
       const converted = serializer.serializeToString(parsed).slice(50, -14)
       Reflect.set(parent, name, converted)
     } catch (err) {
-      log.error(`${inputPath}:${name} - ${err}`)
+      log.error(`${inputPath}:${fqPath.join('.')} - ${err}`)
       process.exitCode = 111
     }
   })
