@@ -170,12 +170,17 @@ const promise = argv.input === '-'
     const showProgress = argv.quiet
       ? () => {}
       : () => (process.stderr.write('.'))
-    for await (const line of readline) {
-      await runForFile(line, null, argv.highlight, argv.inPlace)
+    for await (const filePath of readline) {
+      try {
+        await runForFile(filePath, null, argv.highlight, argv.inPlace)
+      } catch (e) {
+        log.error(`${filePath}: uncaught error - ${e}`)
+        process.exitCode = 111
+      }
       showProgress()
     }
   }
-  : async () => await runForFile(argv.input, argv.output, argv.highlight, argv.inPlace)
+  : runForFile(argv.input, argv.output, argv.highlight, argv.inPlace)
 
 promise().catch((err) => {
   log.fatal(err)
