@@ -11,7 +11,7 @@ const { XMLSerializer } = require('@xmldom/xmldom')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
-  level: process.env.LOG_LEVEL || 'error',
+  level: process.env.LOG_LEVEL || 'warn',
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
@@ -76,8 +76,8 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
   await walkJSON(inputJSON, async ({ parent, name, value, fqPath }) => {
     if (
       typeof value !== 'string' ||
-      parent == null ||
-      value.indexOf('math') === -1
+      parent == null
+      // value.indexOf('math') === -1
     ) {
       return
     }
