@@ -69,7 +69,7 @@ if (argv.format) {
   log.warn('No output format. It will be set to default (html).')
 }
 
-async function mathifyJSON(inputPath, outputPath, outputFormat) {
+async function mathifyJSON (inputPath, outputPath, outputFormat) {
   const inputJSON = JSON.parse(fs.readFileSync(inputPath, { encoding: 'utf-8' }))
   const serializer = new XMLSerializer()
   log.info(inputPath)
@@ -77,7 +77,7 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
     if (
       typeof value !== 'string' ||
       parent == null ||
-      value.indexOf("math") === -1
+      value.indexOf('math') === -1
     ) {
       return
     }
@@ -85,10 +85,10 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
     const parseHTML = (html) => parseXML(html, {
       warn: (msg) => {
         log.warn(
-          `${inputPath}:${name} - ${msg.replace(/\n/g, " - ").replace(/\t/g, ' ')}`
+          `${inputPath}:${name} - ${msg.replace(/\n/g, ' - ').replace(/\t/g, ' ')}`
         )
       }
-    });
+    })
     const el = parseHTML(
       `<tempElement xmlns="http://www.w3.org/1999/xhtml">${value}</tempElement>`
     ).documentElement
@@ -119,7 +119,7 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
         semantics.appendChild(annotation)
         mathElement.appendChild(semantics)
       }
-      const converted = serializer.serializeToString(parsed).slice(50, -14);
+      const converted = serializer.serializeToString(parsed).slice(50, -14)
       Reflect.set(parent, name, converted)
     } catch (err) {
       log.error(`${inputPath}:${name} - ${err}`)
@@ -129,7 +129,7 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
   fs.writeFileSync(outputPath, JSON.stringify(inputJSON, null, 2))
 }
 
-async function runForFile(inputPathRaw, outputPathRaw, highlight, inPlace) {
+async function runForFile (inputPathRaw, outputPathRaw, highlight, inPlace) {
   const inputPath = inputPathRaw.replace(/\\/g, '/')
   const outputPath = outputPathRaw != null && outputPathRaw.length === 0
     ? outputPathRaw.replace(/\\/g, '/')

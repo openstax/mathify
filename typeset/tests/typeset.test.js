@@ -167,13 +167,13 @@ test('Convert inline code tags and block pre tags', async (done) => {
 }, 3000)
 
 test('something', async (done) => {
-  const output = new MemoryWriteStream();
+  const output = new MemoryWriteStream()
   const src = '<p><span data-math="\\frac56"></span></p>'
   const getInputStream = () => new MemoryReadStream(src)
   const getOutputStream = () => output
   const res = await converter.createMapOfMathMLElements(
     log, getInputStream, '', getOutputStream, 'mathml', 3000, false
-  );
+  )
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(output.getValue()).toMatchSnapshot()
   done()

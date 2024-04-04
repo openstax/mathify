@@ -1,11 +1,11 @@
-const { EventEmitter } = require("events")
+const { EventEmitter } = require('events')
 
 const { DOMParser } = require('@xmldom/xmldom')
 
 class ParseError extends Error { }
 
 function parseXML (xmlString, options) {
-  const { warn = console.warn, mimeType = 'text/xml' } = options
+  const { warn = console.warn, mimeType = 'text/xml' } = options ?? {}
   const locator = { lineNumber: 0, columnNumber: 0 }
   const cb = () => {
     const pos = {
@@ -31,12 +31,12 @@ class MemoryStream extends EventEmitter {
     if (encoding !== 'utf8' && encoding !== 'utf-8') {
       throw new Error('Memory stream only supported utf-8 encoding')
     }
-    return this;
+    return this
   }
 }
 
 class MemoryReadStream extends MemoryStream {
-  constructor (content, chunkSize = 1<<20) {
+  constructor (content, chunkSize = 1 << 20) {
     super()
     this.content = content
     this.chunkSize = chunkSize
@@ -52,7 +52,7 @@ class MemoryReadStream extends MemoryStream {
   _start () {
     const content = this.content
     const chunkSize = this.chunkSize
-    
+
     process.nextTick(() => {
       let offset = 0
       const chunks = Math.ceil(content.length / chunkSize)
@@ -66,7 +66,7 @@ class MemoryReadStream extends MemoryStream {
       } finally {
         this.emit('end')
       }
-    });
+    })
     return this
   }
 }
@@ -86,7 +86,7 @@ class MemoryWriteStream extends MemoryStream {
   }
 
   end () {
-    this.emit('finish', {});
+    this.emit('finish', {})
   }
 
   getValue () {
@@ -122,6 +122,5 @@ module.exports = {
   MemoryReadStream,
   MemoryWriteStream,
   walkJSON,
-  parseXML,
+  parseXML
 }
-
