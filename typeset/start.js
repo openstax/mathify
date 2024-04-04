@@ -46,6 +46,12 @@ const argv = yargs
     boolean: true,
     describe: 'Modify file(s) in-place'
   })
+  .option('quiet', {
+    alias: 'q',
+    boolean: true,
+    default: false,
+    describe: 'Do not print . to show progress'
+  })
   .demandOption(['input'])
   .help()
   .argv
@@ -76,8 +82,8 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
   await walkJSON(inputJSON, async ({ parent, name, value, fqPath }) => {
     if (
       typeof value !== 'string' ||
-      parent == null
-      // value.indexOf('math') === -1
+      parent == null ||
+      value.indexOf('math') === -1
     ) {
       return
     }
@@ -161,8 +167,12 @@ async function runForFile (inputPathRaw, outputPathRaw, highlight, inPlace) {
 const promise = argv.input === '-'
   ? async () => {
     const readline = createInterface({ input: process.stdin })
+    const showProgress = argv.quiet
+      ? () => {}
+      : () => (process.stderr.write('.'))
     for await (const line of readline) {
       await runForFile(line, null, argv.highlight, argv.inPlace)
+      showProgress()
     }
   }
   : async () => await runForFile(argv.input, argv.output, argv.highlight, argv.inPlace)
