@@ -7,11 +7,11 @@ const BunyanFormat = require('bunyan-format')
 const converter = require('./converter')
 const { createInterface } = require('readline')
 const { walkJSON, MemoryWriteStream, MemoryReadStream, parseXML } = require('./helpers')
-const { XMLSerializer, DOMParser } = require('@xmldom/xmldom')
+const { XMLSerializer } = require('@xmldom/xmldom')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
-  level: process.env.LOG_LEVEL || 'warn',
+  level: process.env.LOG_LEVEL || 'error',
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
@@ -77,7 +77,7 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
     if (
       typeof value !== 'string' ||
       parent == null ||
-      value.indexOf("data-math") === -1
+      value.indexOf("math") === -1
     ) {
       return
     }
@@ -103,33 +103,27 @@ async function mathifyJSON(inputPath, outputPath, outputFormat) {
         batchSize,
         false
       )
-      let converted = output.getValue()
-      try {
-        const document = parseHTML(converted)
-        const parsed = document.documentElement
-        for (const mathElement of Array.from(parsed.getElementsByTagName('math'))) {
-          const semantics = document.createElement('semantics')
-          const mrow = document.createElement('mrow')
-          const annotation = document.createElement('annotation')
-          for (const node of Array.from(mathElement.childNodes)) {
-            mrow.appendChild(node)
-          }
-          annotation.setAttribute('encoding', 'LaTeX')
-          annotation.textContent = mathElement.getAttribute('alttext')
-          mathElement.removeAttribute('alttext')
-          semantics.appendChild(mrow)
-          semantics.appendChild(annotation)
-          mathElement.appendChild(semantics)
+      const document = parseHTML(output.getValue())
+      const parsed = document.documentElement
+      for (const mathElement of Array.from(parsed.getElementsByTagName('math'))) {
+        const semantics = document.createElement('semantics')
+        const mrow = document.createElement('mrow')
+        const annotation = document.createElement('annotation')
+        for (const node of Array.from(mathElement.childNodes)) {
+          mrow.appendChild(node)
         }
-        converted = serializer.serializeToString(parsed);
-      } catch (err) {
-        log.error(`${inputPath}:${name} - ${err}\n${converted}`)
-        return
+        annotation.setAttribute('encoding', 'LaTeX')
+        annotation.textContent = mathElement.getAttribute('alttext')
+        mathElement.removeAttribute('alttext')
+        semantics.appendChild(mrow)
+        semantics.appendChild(annotation)
+        mathElement.appendChild(semantics)
       }
-      converted = converted.slice(50, -14)
+      const converted = serializer.serializeToString(parsed).slice(50, -14);
       Reflect.set(parent, name, converted)
     } catch (err) {
       log.error(`${inputPath}:${name} - ${err}`)
+      process.exitCode = 111
     }
   })
   fs.writeFileSync(outputPath, JSON.stringify(inputJSON, null, 2))
