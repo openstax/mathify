@@ -83,7 +83,7 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
     if (
       typeof value !== 'string' ||
       parent == null ||
-      value.indexOf('math') === -1
+      value.indexOf('data-math') === -1
     ) {
       return
     }
