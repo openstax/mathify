@@ -1,4 +1,3 @@
-const { EventEmitter } = require('events')
 const path = require('path')
 require('dotenv').config()
 const fs = require('fs')
@@ -7,11 +6,11 @@ const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
 const converter = require('./../converter')
 const { createHash } = require('crypto')
-const { MemoryReadStream, MemoryWriteStream } = require('../helpers')
+const { MemoryReadStream, MemoryWriteStream, getLogLevel } = require('../helpers')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
-  level: process.env.LOG_LEVEL || 'info',
+  level: getLogLevel('30'),
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 

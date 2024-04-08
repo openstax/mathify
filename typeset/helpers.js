@@ -118,9 +118,15 @@ async function walkJSON (content, handler) {
   await recurse('', content, undefined, [])
 }
 
+function getLogLevel (defaultLevel) {
+  const level = process.env.LOG_LEVEL || defaultLevel
+  return isNaN(level) ? level : parseInt(level)
+}
+
 module.exports = {
   MemoryReadStream,
   MemoryWriteStream,
   walkJSON,
-  parseXML
+  parseXML,
+  getLogLevel
 }

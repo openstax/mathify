@@ -6,12 +6,18 @@ const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
 const converter = require('./converter')
 const { createInterface } = require('readline')
-const { walkJSON, MemoryWriteStream, MemoryReadStream, parseXML } = require('./helpers')
+const {
+  walkJSON,
+  MemoryWriteStream,
+  MemoryReadStream,
+  parseXML,
+  getLogLevel
+} = require('./helpers')
 const { XMLSerializer } = require('@xmldom/xmldom')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
-  level: process.env.LOG_LEVEL || 'warn',
+  level: getLogLevel('warn'),
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
