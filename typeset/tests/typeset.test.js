@@ -11,7 +11,10 @@ const { MemoryReadStream, MemoryWriteStream, getLogLevel } = require('../helpers
 const log = bunyan.createLogger({
   name: 'node-typeset',
   level: getLogLevel('30'),
-  stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
+  stream: new BunyanFormat(
+    { outputMode: process.env.LOG_FORMAT || 'short' },
+    process.stderr,
+  )
 })
 
 const pathToInput = path.resolve('./typeset/tests/seed/test.baked.xhtml')

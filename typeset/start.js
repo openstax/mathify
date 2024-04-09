@@ -18,7 +18,10 @@ const { XMLSerializer } = require('@xmldom/xmldom')
 const log = bunyan.createLogger({
   name: 'node-typeset',
   level: getLogLevel('warn'),
-  stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
+  stream: new BunyanFormat(
+    { outputMode: process.env.LOG_FORMAT || 'short' },
+    process.stderr,
+  )
 })
 
 const argv = yargs
