@@ -84,6 +84,22 @@ if (argv.format) {
   log.warn('No output format. It will be set to default (html).')
 }
 
+function convertToSemantics(mathElement) {
+  const document = mathElement.ownerDocument
+  const semantics = document.createElement('semantics')
+  const mrow = document.createElement('mrow')
+  const annotation = document.createElement('annotation')
+  for (const node of Array.from(mathElement.childNodes)) {
+    mrow.appendChild(node)
+  }
+  annotation.setAttribute('encoding', 'LaTeX')
+  annotation.textContent = mathElement.getAttribute('alttext')
+  mathElement.removeAttribute('alttext')
+  semantics.appendChild(mrow)
+  semantics.appendChild(annotation)
+  mathElement.appendChild(semantics)
+}
+
 async function mathifyJSON (inputPath, outputPath, outputFormat) {
   const inputJSON = JSON.parse(fs.readFileSync(inputPath, { encoding: 'utf-8' }))
   const serializer = new XMLSerializer()
@@ -121,25 +137,12 @@ async function mathifyJSON (inputPath, outputPath, outputFormat) {
       )
       const document = parseHTML(output.getValue())
       const parsed = document.documentElement
-      for (const mathElement of Array.from(parsed.getElementsByTagName('math'))) {
-        const semantics = document.createElement('semantics')
-        const mrow = document.createElement('mrow')
-        const annotation = document.createElement('annotation')
-        for (const node of Array.from(mathElement.childNodes)) {
-          mrow.appendChild(node)
-        }
-        annotation.setAttribute('encoding', 'LaTeX')
-        annotation.textContent = mathElement.getAttribute('alttext')
-        mathElement.removeAttribute('alttext')
-        semantics.appendChild(mrow)
-        semantics.appendChild(annotation)
-        mathElement.appendChild(semantics)
-      }
+      Array.from(parsed.getElementsByTagName('math')).forEach(convertToSemantics)
       const converted = serializer.serializeToString(parsed).slice(50, -14)
       Reflect.set(parent, name, converted)
     } catch (err) {
-      log.error(`${inputPath}:${fqPath.join('.')} - ${err}`)
       process.exitCode = 111
+      throw new Error(`${inputPath}:${fqPath.join('.')} - ${err}`)
     }
   })
   fs.writeFileSync(outputPath, JSON.stringify(inputJSON, null, 2))
@@ -166,32 +169,38 @@ async function runForFile (inputPathRaw, outputPathRaw, highlight, inPlace) {
       highlight
     )
   } else {
-    throw new Error('Expected XHTML or JSON file')
+    throw new Error(`Expected XHTML or JSON file: ${inputPathRaw}`)
   }
   if (inPlace) {
     fs.renameSync(outputPath, inputPath)
   }
 }
 
-const promise = argv.input === '-'
-  ? async () => {
-    const readline = createInterface({ input: process.stdin })
-    const showProgress = argv.quiet
-      ? () => {}
-      : () => (process.stderr.write('.'))
-    for await (const filePath of readline) {
-      try {
-        await runForFile(filePath, null, argv.highlight, argv.inPlace)
-      } catch (e) {
-        log.error(`${filePath}: uncaught error - ${e}`)
-        process.exitCode = 111
-      }
-      showProgress()
+async function runForStdin(highlight, inPlace, quiet) {
+  const readline = createInterface({ input: process.stdin })
+  const showProgress = quiet
+    ? () => {}
+    : () => (process.stderr.write('.'))
+  for await (const filePath of readline) {
+    let result = 'Error: This should be unreachable'
+    try {
+      await runForFile(filePath, null, highlight, inPlace)
+      result = `Converted: ${filePath}`
+    } catch (e) {
+      result = e
+      process.exitCode = 111
+    } finally {
+      process.stdout.write(`${result}\n`)
     }
+    showProgress()
   }
+}
+
+const promise = argv.input === '-'
+  ? runForStdin(argv.highlight, argv.inPlace, argv.quiet)
   : runForFile(argv.input, argv.output, argv.highlight, argv.inPlace)
 
-promise().catch((err) => {
+promise.catch((err) => {
   log.fatal(err)
   process.exit(111)
 })
