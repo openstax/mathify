@@ -62,7 +62,9 @@ class ProcessPipe:
 
 class Mathify(ProcessPipe):
     def __init__(self, path_to_typeset, *, stderr=sys.stderr):
-        command = f"node {path_to_typeset}/start.js -I -i - -f mathml -q"
+        start_path = Path(path_to_typeset) / "start.js"
+        assert start_path.exists(), f"Path does not exist: {start_path}"
+        command = f"node {start_path} -I -i - -f mathml -q"
         super().__init__(command, stderr=stderr)
     
     def send(self, line: str):
