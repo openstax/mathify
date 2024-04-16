@@ -3,20 +3,20 @@ from subprocess import Popen, PIPE
 from shlex import split
 import select
 from time import sleep
-import traceback
 from pathlib import Path
 
-
-def _pipe_next(p, item, timeout=5):
-    lines = item.split("\n")
-    for line in lines:
-        p.stdin.write(line)
-        p.stdin.write("\n")
-    ready_to_read, _, _ = select.select([p.stdout], [], [], timeout)
-    if not ready_to_read:
-        # Do not rise here because that would interrupt the generator
-        return Exception("Timeout while waiting for process response")
-    return "\n".join(p.stdout.readline().strip() for _ in lines)
+def get_pipe_reader_with_timeout(timeout: int):
+    def _pipe_next(p, item):
+        lines = item.split("\n")
+        for line in lines:
+            p.stdin.write(line)
+            p.stdin.write("\n")
+        ready_to_read, _, _ = select.select([p.stdout], [], [], timeout)
+        if not ready_to_read:
+            # Do not rise here because that would interrupt the generator
+            return Exception("Timeout while waiting for process response")
+        return "\n".join(p.stdout.readline().strip() for _ in lines)
+    return _pipe_next
 
 
 def pipe_to(p, pipe_handler):
@@ -25,16 +25,16 @@ def pipe_to(p, pipe_handler):
         item = yield pipe_handler(p, item)
 
 
-def create_one_to_one_pipe(p):
+def create_one_to_one_pipe(p, timeout: int):
     while not p.stdin.writable() or not p.stdout.readable():
         sleep(0.1)
-    pipe = pipe_to(p, _pipe_next)
+    pipe = pipe_to(p, get_pipe_reader_with_timeout(timeout))
     next(pipe)  # Prime the generator (required step)
     return pipe
 
 
 class ProcessPipe:
-    def __init__(self, command, *, stderr=sys.stderr):
+    def __init__(self, command, *, timeout=None, stderr=sys.stderr):
         self.proc = Popen(
             split(command),
             stdin=PIPE,
@@ -43,7 +43,7 @@ class ProcessPipe:
             bufsize=0,
             encoding="utf-8",
         )
-        self.pipe = create_one_to_one_pipe(self.proc)
+        self.pipe = create_one_to_one_pipe(self.proc, timeout or 5)
 
     def send(self, line: str):
         response = self.pipe.send(line)
@@ -54,18 +54,22 @@ class ProcessPipe:
             raise response
         return response
 
-    def close(self):
-        assert self.proc.stdin is not None
-        self.proc.stdin.close()
-        return self.proc.wait()
+    def close(self, timeout=None):
+        try:
+            assert self.proc.stdin is not None
+            self.proc.stdin.close()
+            return self.proc.wait(timeout=timeout or 1)
+        except Exception:
+            self.proc.kill()
+            raise
 
 
 class Mathify(ProcessPipe):
-    def __init__(self, path_to_typeset, *, stderr=sys.stderr):
+    def __init__(self, path_to_typeset, *, timeout: int = 5, stderr=sys.stderr):
         start_path = Path(path_to_typeset) / "start.js"
         assert start_path.exists(), f"Path does not exist: {start_path}"
         command = f"node {start_path} -I -i - -f mathml -q"
-        super().__init__(command, stderr=stderr)
+        super().__init__(command, timeout=timeout, stderr=stderr)
     
     def send(self, line: str):
         response = super().send(line)
@@ -75,11 +79,9 @@ class Mathify(ProcessPipe):
 
 
 pipe = Mathify("./typeset")
-for p in Path("..").glob("**/content.json"):
-    try:
+try:
+    for p in Path("..").glob("**/content.json"):
         print(pipe.send(str(p)), file=sys.stderr)
-    except Exception as e:
-        for e in traceback.format_exception(e):
-            print(e, file=sys.stderr)
-        sys.exit(111)
-pipe.close()
+finally:
+    exit_status = pipe.close(timeout=0.1)
+    print(f"Mathify process exited with status: {exit_status}", file=sys.stderr)
