@@ -1,14 +1,12 @@
-const path = require('path')
-const fileExists = require('file-exists')
-const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
+const { XMLSerializer } = require('@xmldom/xmldom')
 const { scanXML, looseTagEq } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
 
-const fs = require('fs')
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
 const hljsLineNumbers = require('./hljs-line-numbers')
+const { parseXML } = require('./helpers')
 
 // Status codes
 const STATUS_CODE = {
@@ -16,54 +14,17 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-class ParseError extends Error { }
-
-function parseXML (xmlString) {
-  const locator = { lineNumber: 0, columnNumber: 0 }
-  const cb = () => {
-    const pos = {
-      line: locator.lineNumber - 1,
-      character: locator.columnNumber - 1
-    }
-    throw new ParseError(`ParseError: ${JSON.stringify(pos)}`)
-  }
-  const p = new DOMParser({
-    locator,
-    errorHandler: {
-      warning: console.warn,
-      error: cb,
-      fatalError: cb
-    }
-  })
-  const doc = p.parseFromString(xmlString)
-  return doc
-}
-
-const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight) => {
+const createMapOfMathMLElements = async (log, getInputStream, cssPath, getOutputStream, outputFormat, batchSize, highlight) => {
   const timeOfStart = new Date().getTime()
 
-  // Check that the XHTML and CSS files exist
-  if (!fileExists.sync(inputPath)) {
-    log.error(`Input XHTML file not found: "${inputPath}"`)
-    return STATUS_CODE.ERROR
-  }
-  if (cssPath && !fileExists.sync(cssPath)) {
-    log.error(`Input CSS file not found: "${cssPath}"`)
-    return STATUS_CODE.ERROR
-  }
-
   const parser = sax.parser(true)
-  const output = path.resolve(outputPath)
   const mathEntries = []
   const codeEntries = []
   // Keep an array of all the replacements in the order they appeared in within the file
   const sortedReplacements = []
   let head
 
-  log.info('Opening XHTML file (may take a few minutes)')
-  log.debug(`Opening "${inputPath}"`)
-  const inputContent = fs.createReadStream(inputPath).setEncoding('utf8')
-  log.debug(`Opened "${inputPath}"`)
+  const inputContent = getInputStream().setEncoding('utf8')
 
   const matchers = [
     { attr: 'data-math' },
@@ -79,12 +40,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   if (highlight) {
     log.debug('Adding matchers for code highlighting...')
 
-    const tags = ['pre', 'code'];
-    const attributes = ['data-lang', 'lang'];
+    const tags = ['pre', 'code']
+    const attributes = ['data-lang', 'lang']
 
     for (let i = 0; i < tags.length; i++) {
       for (let j = 0; j < attributes.length; j++) {
-        matchers.push({ tag: tags[i], attr: attributes[j] });
+        matchers.push({ tag: tags[i], attr: attributes[j] })
       }
     }
   }
@@ -109,9 +70,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         }
         head = match
         sortedReplacements.push(match)
-      } else {
+      } else if (looseTagEq(match.node.name, 'pre') || looseTagEq(match.node.name, 'code')) {
         codeEntries.push(match)
         sortedReplacements.push(match)
+      } else {
+        const attr = JSON.stringify(match.node.attributes)
+        throw new Error(`Got unexpected node: ${match.node.name} ${attr}`)
       }
     }
   )
@@ -121,7 +85,6 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     inputContent.on('data', chunk => parser.write(chunk))
     inputContent.on('end', () => resolve())
   })
-  log.debug(`Parsed "${inputPath}"`)
 
   // Prepare code highlighting
   await highlightCodeElements(codeEntries)
@@ -140,15 +103,13 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   }
   log.info('Updating content...')
   await new Promise((resolve, reject) => {
-    const reader = fs.createReadStream(inputPath).setEncoding('utf8')
-    const writer = fs.createWriteStream(outputPath)
+    const reader = getInputStream().setEncoding('utf8')
+    const writer = getOutputStream()
     writer.on('error', err => reject(err))
     reader.on('error', err => reject(err))
     writer.on('finish', () => resolve())
     PARAS(sortedReplacements, reader, writer)
   })
-
-  log.info(`Content saved. Open "${output}" to see converted file.`)
 
   const timeOfEndInSec = (new Date().getTime() - timeOfStart) / 1000
   const timeOfEndInMin = timeOfEndInSec > 60 ? Math.round(timeOfEndInSec / 60) : 0

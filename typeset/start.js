@@ -1,20 +1,33 @@
 const path = require('path')
+const fs = require('fs')
 const yargs = require('yargs')
 require('dotenv').config()
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
 const converter = require('./converter')
+const { createInterface } = require('readline')
+const {
+  walkJSON,
+  MemoryWriteStream,
+  MemoryReadStream,
+  parseXML,
+  getLogLevel
+} = require('./helpers')
+const { XMLSerializer } = require('@xmldom/xmldom')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
-  level: process.env.LOG_LEVEL || 'info',
-  stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
+  level: getLogLevel('warn'),
+  stream: new BunyanFormat(
+    { outputMode: process.env.LOG_FORMAT || 'short' },
+    process.stderr,
+  )
 })
 
 const argv = yargs
-  .option('xhtml', {
+  .option('input', {
     alias: 'i',
-    describe: 'Input XHTML File'
+    describe: 'Input File (xhtml, json, or \'-\' to read file list from stdin)'
   })
   .option('css', {
     alias: 'c',
@@ -37,11 +50,21 @@ const argv = yargs
     alias: 'b',
     describe: 'Number of math elements to convert as a batch. Default: 3000'
   })
-  .demandOption(['xhtml', 'output'])
+  .option('in-place', {
+    alias: 'I',
+    boolean: true,
+    describe: 'Modify file(s) in-place'
+  })
+  .option('quiet', {
+    alias: 'q',
+    boolean: true,
+    default: false,
+    describe: 'Do not print . to show progress'
+  })
+  .demandOption(['input'])
   .help()
   .argv
 
-const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
 let outputFormat = 'html'
 const batchSize = Number(argv.batchSize) || 3000
@@ -61,18 +84,123 @@ if (argv.format) {
   log.warn('No output format. It will be set to default (html).')
 }
 
-if (!/\.xhtml$/.test(pathToInput)) {
-  throw new Error('The input file must end with \'.xhtml\' so Chrome parses it as XML (strict) rather than HTML')
+function convertToSemantics(mathElement) {
+  const document = mathElement.ownerDocument
+  const semantics = document.createElement('semantics')
+  const mrow = document.createElement('mrow')
+  const annotation = document.createElement('annotation')
+  for (const node of Array.from(mathElement.childNodes)) {
+    mrow.appendChild(node)
+  }
+  annotation.setAttribute('encoding', 'LaTeX')
+  annotation.textContent = mathElement.getAttribute('alttext')
+  mathElement.removeAttribute('alttext')
+  semantics.appendChild(mrow)
+  semantics.appendChild(annotation)
+  mathElement.appendChild(semantics)
 }
 
-if (!/\.xhtml$/.test(argv.output)) {
-  throw new Error('The output file should end with \'.xhtml\'')
-}
-
-log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight)
-  .then(exitStatus => process.exit(exitStatus))
-  .catch(err => {
-    log.fatal(err)
-    process.exit(111)
+async function mathifyJSON (inputPath, outputPath, outputFormat) {
+  const inputJSON = JSON.parse(fs.readFileSync(inputPath, { encoding: 'utf-8' }))
+  const serializer = new XMLSerializer()
+  log.info(inputPath)
+  await walkJSON(inputJSON, async ({ parent, name, value, fqPath }) => {
+    if (
+      typeof value !== 'string' ||
+      parent == null ||
+      value.indexOf('data-math') === -1
+    ) {
+      return
+    }
+    const output = new MemoryWriteStream()
+    const parseHTML = (html) => parseXML(html, {
+      warn: (msg) => {
+        log.warn(
+          `${inputPath}:${name} - ${msg.replace(/\n/g, ' - ').replace(/\t/g, ' ')}`
+        )
+      },
+      mimeType: 'text/html'
+    })
+    try {
+      const el = parseHTML(
+        `<tempElement xmlns="http://www.w3.org/1999/xhtml">${value}</tempElement>`
+      ).documentElement
+      const src = serializer.serializeToString(el)
+      await converter.createMapOfMathMLElements(
+        log,
+        () => new MemoryReadStream(src),
+        '',
+        () => output,
+        outputFormat,
+        batchSize,
+        false
+      )
+      const document = parseHTML(output.getValue())
+      const parsed = document.documentElement
+      Array.from(parsed.getElementsByTagName('math')).forEach(convertToSemantics)
+      const converted = serializer.serializeToString(parsed).slice(50, -14)
+      Reflect.set(parent, name, converted)
+    } catch (err) {
+      process.exitCode = 111
+      throw new Error(`${inputPath}:${fqPath.join('.')} - ${err}`)
+    }
   })
+  fs.writeFileSync(outputPath, JSON.stringify(inputJSON, null, 2))
+}
+
+async function runForFile (inputPathRaw, outputPathRaw, highlight, inPlace) {
+  const inputPath = inputPathRaw.replace(/\\/g, '/')
+  const outputPath = outputPathRaw != null && outputPathRaw.length === 0
+    ? outputPathRaw.replace(/\\/g, '/')
+    : `${inputPath}.mathified`
+  if (inputPath.endsWith('.json')) {
+    await mathifyJSON(inputPath, outputPath, outputFormat)
+  } else if (inputPath.endsWith('.xhtml')) {
+    const getInputStream = () => fs.createReadStream(inputPath)
+    const getOutputStream = () => fs.createWriteStream(outputPath)
+
+    await converter.createMapOfMathMLElements(
+      log,
+      getInputStream,
+      pathToCss,
+      getOutputStream,
+      outputFormat,
+      batchSize,
+      highlight
+    )
+  } else {
+    throw new Error(`Expected XHTML or JSON file: ${inputPathRaw}`)
+  }
+  if (inPlace) {
+    fs.renameSync(outputPath, inputPath)
+  }
+}
+
+async function runForStdin(highlight, inPlace, quiet) {
+  const readline = createInterface({ input: process.stdin })
+  const showProgress = quiet
+    ? () => {}
+    : () => (process.stderr.write('.'))
+  for await (const filePath of readline) {
+    let result = 'Error: This should be unreachable'
+    try {
+      await runForFile(filePath, null, highlight, inPlace)
+      result = `Converted: ${filePath}`
+    } catch (e) {
+      result = e
+      process.exitCode = 111
+    } finally {
+      process.stdout.write(`${result}\n`)
+    }
+    showProgress()
+  }
+}
+
+const promise = argv.input === '-'
+  ? runForStdin(argv.highlight, argv.inPlace, argv.quiet)
+  : runForFile(argv.input, argv.output, argv.highlight, argv.inPlace)
+
+promise.catch((err) => {
+  log.fatal(err)
+  process.exit(111)
+})
