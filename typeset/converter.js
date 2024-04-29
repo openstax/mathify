@@ -67,8 +67,11 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
 
   const matchers = [
     { attr: 'data-math' },
-    { tag: 'head' }
   ]
+
+  if (outputFormat === 'html') {
+    matchers.push({tag: 'head'})
+  }
 
   // I fear what might happen if we try to convert from mathml to mathml
   if (outputFormat !== 'mathml') {
