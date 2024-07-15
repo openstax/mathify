@@ -6,18 +6,6 @@ const NUMBER_LINE_NAME = 'hljs-ln-n'
 const DATA_ATTR_NAME = 'data-line-number'
 const BREAK_LINE_REGEXP = /\r\n|\r|\n/g
 
-function getStyles () {
-  return format(
-    '.{0}{border-collapse:collapse}' +
-    '.{0} td{padding:0}' +
-    '.{1}:before{content:attr({2})}',
-    [
-      TABLE_NAME,
-      NUMBER_LINE_NAME,
-      DATA_ATTR_NAME
-    ])
-}
-
 function format (format, args) {
   return format.replace(/\{(\d+)\}/g, function (m, n) {
     return args[n] !== undefined ? args[n] : m
@@ -64,4 +52,4 @@ function getLines (text) {
   return text.split(BREAK_LINE_REGEXP)
 }
 
-module.exports = { addCodeLineNumbers, getStyles }
+module.exports = { addCodeLineNumbers }
