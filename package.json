@@ -4,7 +4,8 @@
   "scripts": {
     "start": "node ./typeset/start.js @*",
     "start:debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "jest && standard --fix --verbose",
+    "test": "jest --coverage --coverageDirectory ./.nyc_output/",
+    "lint:fix": "standard --fix --verbose",
     "watch": "jest --watch",
     "jest": "jest"
   },
