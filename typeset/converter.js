@@ -185,6 +185,27 @@ function getLanguage (el, attr) {
   return el.getAttribute(attr).toLowerCase()
 }
 
+function mergeAttributes (attributes, to) {
+  Object.entries(attributes).forEach(([k, v]) => {
+    let newValue = v
+    const existingValue = to.getAttribute(k)
+    if (
+      existingValue != null &&
+      existingValue.length > 0 &&
+      newValue !== existingValue
+    ) {
+      /* istanbul ignore else */
+      if (k === 'class') {
+        newValue = [newValue, existingValue].join(' ')
+      } else {
+        // Class should be the only thing table is created with atm
+        throw new Error(`Could not combine existing value for ${k}`)
+      }
+    }
+    to.setAttribute(k, newValue)
+  })
+}
+
 async function highlightCodeElements (codeEntries) {
   codeEntries.forEach(entry => {
     let el = parseXML(entry.element).documentElement
@@ -196,9 +217,7 @@ async function highlightCodeElements (codeEntries) {
     if (hasLineNumbers) {
       outputHtml = hljsLineNumbers.addCodeLineNumbers(outputHtml)
       el = parseXML(outputHtml).documentElement
-      Object.entries(entry.node.attributes).forEach(([k, v]) => {
-        el.setAttribute(k, v)
-      })
+      mergeAttributes(entry.node.attributes, el)
     } else {
       const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
       el.removeChild(el.firstChild)
