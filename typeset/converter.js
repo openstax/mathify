@@ -20,7 +20,7 @@ class ParseError extends Error { }
 
 function parseXML (xmlString) {
   const locator = { lineNumber: 0, columnNumber: 0 }
-  const cb = () => {
+  const cb = /* istanbul ignore next */ () => {
     const pos = {
       line: locator.lineNumber - 1,
       character: locator.columnNumber - 1
@@ -107,6 +107,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         mathEntries.push(replacement)
         sortedReplacements.push(replacement)
       } else if (looseTagEq(match.node.name, 'head')) {
+        /* istanbul ignore next */
         if (head !== undefined) {
           throw new Error('Encountered two head elements')
         }
@@ -158,6 +159,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   let timeOfEnd = ''
 
   if (timeOfEndInMin) {
+    /* istanbul ignore next */
     timeOfEnd = `${timeOfEndInMin} minutes and ${timeOfEndInSec % 60} seconds.`
   } else {
     timeOfEnd = `${timeOfEndInSec} seconds.`

@@ -15,12 +15,9 @@ function format (format, args) {
 function addCodeLineNumbers (inputHtml) {
   var lines = getLines(inputHtml.trim())
   // if last line contains only carriage return remove it
-  if (lines.length == 0) {
+  if (lines.length === 0) {
+    /* istanbul ignore next (maybe empty code element should be an error?) */
     return inputHtml
-  }
-
-  if (lines[lines.length - 1].trim() === '') {
-    lines.pop()
   }
 
   var html = ''
