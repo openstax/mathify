@@ -62,4 +62,4 @@ typings/
 
 
 /typeset/*-baked.*html
-/typeset/output*.*html
+/typeset/tests/*.output.*html

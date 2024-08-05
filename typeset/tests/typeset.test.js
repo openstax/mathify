@@ -22,7 +22,7 @@ const pathToOutputLatex = path.resolve('./typeset/tests/test-output-latex.xhtml'
 const pathToOutputMML = path.resolve('./typeset/tests/test-output-mathml.xhtml')
 
 const pathToCodeInput = path.resolve('./typeset/tests/seed/test-code.xhtml')
-const pathToCodeOutput = path.resolve('./typeset/tests/seed/test-code.output.xhtml')
+const pathToCodeOutput = path.resolve('./typeset/tests/test-code.output.xhtml')
 
 beforeAll(() => {
   if (fileExists.sync(pathToOutput)) {
@@ -45,6 +45,12 @@ beforeAll(() => {
 
   if (fileExists.sync(pathToOutputMML)) {
     fs.unlink(pathToOutputMML, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToCodeOutput)) {
+    fs.unlink(pathToCodeOutput, (err) => {
       if (err) throw err
     })
   }
@@ -71,6 +77,12 @@ afterAll(() => {
 
   if (fileExists.sync(pathToOutputMML)) {
     fs.unlink(pathToOutputMML, (err) => {
+      if (err) throw err
+    })
+  }
+
+  if (fileExists.sync(pathToCodeOutput)) {
+    fs.unlink(pathToCodeOutput, (err) => {
       if (err) throw err
     })
   }
