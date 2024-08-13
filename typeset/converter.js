@@ -20,7 +20,7 @@ class ParseError extends Error { }
 
 function parseXML (xmlString) {
   const locator = { lineNumber: 0, columnNumber: 0 }
-  const cb = () => {
+  const cb = /* istanbul ignore next */ () => {
     const pos = {
       line: locator.lineNumber - 1,
       character: locator.columnNumber - 1
@@ -66,11 +66,11 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   log.debug(`Opened "${inputPath}"`)
 
   const matchers = [
-    { attr: 'data-math' },
+    { attr: 'data-math' }
   ]
 
   if (outputFormat === 'html') {
-    matchers.push({tag: 'head'})
+    matchers.push({ tag: 'head' })
   }
 
   // I fear what might happen if we try to convert from mathml to mathml
@@ -82,12 +82,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   if (highlight) {
     log.debug('Adding matchers for code highlighting...')
 
-    const tags = ['pre', 'code'];
-    const attributes = ['data-lang', 'lang'];
+    const tags = ['pre', 'code']
+    const attributes = ['data-lang', 'lang']
 
     for (let i = 0; i < tags.length; i++) {
       for (let j = 0; j < attributes.length; j++) {
-        matchers.push({ tag: tags[i], attr: attributes[j] });
+        matchers.push({ tag: tags[i], attr: attributes[j] })
       }
     }
   }
@@ -107,6 +107,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
         mathEntries.push(replacement)
         sortedReplacements.push(replacement)
       } else if (looseTagEq(match.node.name, 'head')) {
+        /* istanbul ignore next */
         if (head !== undefined) {
           throw new Error('Encountered two head elements')
         }
@@ -158,6 +159,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   let timeOfEnd = ''
 
   if (timeOfEndInMin) {
+    /* istanbul ignore next */
     timeOfEnd = `${timeOfEndInMin} minutes and ${timeOfEndInSec % 60} seconds.`
   } else {
     timeOfEnd = `${timeOfEndInSec} seconds.`
@@ -185,9 +187,30 @@ function getLanguage (el, attr) {
   return el.getAttribute(attr).toLowerCase()
 }
 
+function mergeAttributes (attributes, to) {
+  Object.entries(attributes).forEach(([k, v]) => {
+    let newValue = v
+    const existingValue = to.getAttribute(k)
+    if (
+      existingValue != null &&
+      existingValue.length > 0 &&
+      newValue !== existingValue
+    ) {
+      /* istanbul ignore else */
+      if (k === 'class') {
+        newValue = [newValue, existingValue].join(' ')
+      } else {
+        // Class should be the only thing table is created with atm
+        throw new Error(`Could not combine existing value for ${k}`)
+      }
+    }
+    to.setAttribute(k, newValue)
+  })
+}
+
 async function highlightCodeElements (codeEntries) {
   codeEntries.forEach(entry => {
-    const el = parseXML(entry.element).documentElement
+    let el = parseXML(entry.element).documentElement
     // List of supported language classes: https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md
     const language = getLanguage(el, 'data-lang') || getLanguage(el, 'lang')
     const hasLineNumbers = el.getAttribute('class').indexOf('line-numbering') !== -1
@@ -195,12 +218,14 @@ async function highlightCodeElements (codeEntries) {
     let outputHtml = hljs.highlight(language, inputCode).value
     if (hasLineNumbers) {
       outputHtml = hljsLineNumbers.addCodeLineNumbers(outputHtml)
+      el = parseXML(outputHtml).documentElement
+      mergeAttributes(entry.node.attributes, el)
+    } else {
+      const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
+      el.removeChild(el.firstChild)
+      Array.from(newNode.childNodes).forEach(child => el.appendChild(child))
     }
-    const newNode = parseXML(`<tempElement xmlns="http://www.w3.org/1999/xhtml">${outputHtml}</tempElement>`).documentElement
     const localNamespaces = Object.keys(entry.node.attributes).filter(k => k.startsWith('xmlns'))
-
-    el.removeChild(el.firstChild)
-    Array.from(newNode.childNodes).forEach(child => el.appendChild(child))
     entry.substitution = cleanNamespaces(el, localNamespaces)
   })
 }
