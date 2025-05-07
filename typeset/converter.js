@@ -17,8 +17,8 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-const makeMathErrorHandler = (xmlPath, log) => (errorPairs) => {
-  const xmlString = fs.readFileSync(xmlPath, { encoding: 'utf-8' })
+const makeMathErrorHandler = (inputPath, log) => (errorPairs) => {
+  const xmlString = fs.readFileSync(inputPath, { encoding: 'utf-8' })
   const xmlDoc = parseXML(xmlString, 'text/html')
   const elements = Object.values(xmlDoc.getElementsByTagName('*'))
   errorPairs.forEach(([err, match]) => {
