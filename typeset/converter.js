@@ -1,6 +1,6 @@
 const path = require('path')
 const fileExists = require('file-exists')
-const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
+const { XMLSerializer } = require('@xmldom/xmldom')
 const { scanXML, looseTagEq } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
@@ -9,6 +9,7 @@ const fs = require('fs')
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
 const hljsLineNumbers = require('./hljs-line-numbers')
+const { parseXML, ancestorOrSelf } = require('./dom-utils')
 
 // Status codes
 const STATUS_CODE = {
@@ -16,41 +17,10 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-class ParseError extends Error { }
-
-function parseXML (xmlString, mimetype) {
-  const locator = { lineNumber: 0, columnNumber: 0 }
-  const cb = /* istanbul ignore next */ () => {
-    const pos = {
-      line: locator.lineNumber - 1,
-      character: locator.columnNumber - 1
-    }
-    throw new ParseError(`ParseError: ${JSON.stringify(pos)}`)
-  }
-  const p = new DOMParser({
-    locator,
-    errorHandler: {
-      warning: console.warn,
-      error: cb,
-      fatalError: cb
-    }
-  })
-  const doc = p.parseFromString(xmlString, mimetype)
-  return doc
-}
-
 const makeMathErrorHandler = (xmlPath, log) => (errorPairs) => {
   const xmlString = fs.readFileSync(xmlPath, { encoding: 'utf-8' });
   const xmlDoc = parseXML(xmlString, 'text/html');
   const elements = Object.values(xmlDoc.getElementsByTagName('*'));
-  const getParentElement = (node) => {
-    let ptr = node.parentNode;
-    while (ptr && ptr.nodeType !== xmlDoc.ELEMENT_NODE) {
-      /* istanbul ignore next */
-      ptr = ptr.parentNode;
-    }
-    return ptr;
-  }
   errorPairs.forEach(([err, match]) => {
     const matchInfo = { errors: err };
     const { attributes } = match.node;
@@ -69,13 +39,11 @@ const makeMathErrorHandler = (xmlPath, log) => (errorPairs) => {
         'data-injected-from-nickname',
         'data-injected-from-version',
       ];
-      let ptr = element;
-      // Stop at the top of the tree or if we find a data-sm (direct link to element)
-      while (ptr && !matchInfo['data-sm']) {
+      for (const el of ancestorOrSelf(element)) {
         targetAttributes.forEach((attrName) => {
-          matchInfo[attrName] = matchInfo[attrName] || ptr.getAttribute(attrName);
+          matchInfo[attrName] = matchInfo[attrName] || el.getAttribute(attrName);
         })
-        ptr = getParentElement(ptr);
+        if (matchInfo['data-sm']) break;
       }
     }
     log.error(JSON.stringify(matchInfo, Object.keys(matchInfo).filter((k) => matchInfo[k]), 2));
