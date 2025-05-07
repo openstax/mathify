@@ -18,17 +18,17 @@ const STATUS_CODE = {
 }
 
 const makeMathErrorHandler = (xmlPath, log) => (errorPairs) => {
-  const xmlString = fs.readFileSync(xmlPath, { encoding: 'utf-8' });
-  const xmlDoc = parseXML(xmlString, 'text/html');
-  const elements = Object.values(xmlDoc.getElementsByTagName('*'));
+  const xmlString = fs.readFileSync(xmlPath, { encoding: 'utf-8' })
+  const xmlDoc = parseXML(xmlString, 'text/html')
+  const elements = Object.values(xmlDoc.getElementsByTagName('*'))
   errorPairs.forEach(([err, match]) => {
-    const matchInfo = { errors: err };
-    const { attributes } = match.node;
-    let element;
+    const matchInfo = { errors: err }
+    const { attributes } = match.node
+    let element
     // TODO: Ideally this would work for mathml elements too
     if ('data-math' in attributes) {
-      const dataMath = attributes['data-math'];
-      element = elements.find((el) => el.getAttribute('data-math') === dataMath);
+      const dataMath = attributes['data-math']
+      element = elements.find((el) => el.getAttribute('data-math') === dataMath)
     }
     // If we found an element, walk up the tree and try to gather useful information
     if (element) {
@@ -37,17 +37,17 @@ const makeMathErrorHandler = (xmlPath, log) => (errorPairs) => {
         'data-math',
         'data-injected-from-url',
         'data-injected-from-nickname',
-        'data-injected-from-version',
-      ];
+        'data-injected-from-version'
+      ]
       for (const el of ancestorOrSelf(element)) {
         targetAttributes.forEach((attrName) => {
-          matchInfo[attrName] = matchInfo[attrName] || el.getAttribute(attrName);
+          matchInfo[attrName] = matchInfo[attrName] || el.getAttribute(attrName)
         })
-        if (matchInfo['data-sm']) break;
+        if (matchInfo['data-sm']) break
       }
     }
-    log.error(JSON.stringify(matchInfo, Object.keys(matchInfo).filter((k) => matchInfo[k]), 2));
-  });
+    log.error(JSON.stringify(matchInfo, Object.keys(matchInfo).filter((k) => matchInfo[k]), 2))
+  })
 }
 
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight) => {
@@ -143,12 +143,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   await highlightCodeElements(codeEntries)
 
   const allUniqueCss = new Set()
-  const handleErrors = makeMathErrorHandler(inputPath, log);
+  const handleErrors = makeMathErrorHandler(inputPath, log)
   for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
     const start = batchSize * batch
     const end = Math.min(batchSize * batch + batchSize, mathEntries.length)
     log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
-    const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start, handleErrors);
+    const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start, handleErrors)
     allUniqueCss.add(uniqueCss)
   }
 

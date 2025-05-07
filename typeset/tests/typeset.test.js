@@ -172,16 +172,16 @@ test('Convert inline code tags and block pre tags', async (done) => {
 }, 3000)
 
 test('Error logging', async (done) => {
-  const messages = [];
+  const messages = []
   const logCapture = {
     info: jest.fn(),
     debug: jest.fn(),
-    error: jest.fn().mockImplementation(messages.push.bind(messages)),
-  };
+    error: jest.fn().mockImplementation(messages.push.bind(messages))
+  }
   await expect(
     converter.createMapOfMathMLElements(logCapture, pathToInputLatexErrors, pathToCss, pathToOutputMML, 'mathml', 3000, true)
   ).rejects.toThrow()
-  
+
   expect(messages).toStrictEqual(
     [
 `{

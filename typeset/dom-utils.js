@@ -1,26 +1,26 @@
-const { DOMParser } = require('@xmldom/xmldom');
+const { DOMParser } = require('@xmldom/xmldom')
 
-const ELEMENT_NODE = 1;
+const ELEMENT_NODE = 1
 
-function getParentElement(node) {
-  let ptr = node.parentNode;
+function getParentElement (node) {
+  let ptr = node.parentNode
   while (ptr && ptr.nodeType !== ELEMENT_NODE) {
-    ptr = ptr.parentNode;
+    ptr = ptr.parentNode
   }
-  return ptr;
+  return ptr
 }
 
-function* ancestorOrSelf(node) {
-  let ptr = node;
+function * ancestorOrSelf (node) {
+  let ptr = node
   while (ptr) {
-    yield ptr;
-    ptr = getParentElement(ptr);    
+    yield ptr
+    ptr = getParentElement(ptr)
   }
 }
 
 class ParseError extends Error { }
 
-function parseXML(xmlString, mimetype) {
+function parseXML (xmlString, mimetype) {
   const locator = { lineNumber: 0, columnNumber: 0 }
   const cb = /* istanbul ignore next */ () => {
     const pos = {
@@ -41,4 +41,4 @@ function parseXML(xmlString, mimetype) {
   return doc
 }
 
-module.exports = { ancestorOrSelf, getParentElement, ParseError, parseXML };
+module.exports = { ancestorOrSelf, getParentElement, ParseError, parseXML }
