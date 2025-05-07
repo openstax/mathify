@@ -188,6 +188,7 @@ test('Error logging', async (done) => {
   \"errors\": [
     \"TeX parse error: Undefined control sequence \\\\3\"
   ],
+  \"tagName\": \"span\",
   \"data-sm\": \"./some-document\",
   \"data-math\": \"\\\\left\\\\{\\\\begin{array}{l}3x+7y=15\\\\3x+7y=40\\\\end{array}\\\\right.\",
   \"data-injected-from-nickname\": \"broken-exercise\"
@@ -196,6 +197,7 @@ test('Error logging', async (done) => {
   \"errors\": [
     \"TeX parse error: Missing close brace\"
   ],
+  \"tagName\": \"span\",
   \"data-sm\": \"./some-document\",
   \"data-math\": \"\\\\text{H^+\",
   \"data-injected-from-nickname\": \"broken-exercise\"

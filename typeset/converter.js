@@ -22,7 +22,7 @@ const makeMathErrorHandler = (inputPath, log) => (errorPairs) => {
   const xmlDoc = parseXML(xmlString, 'text/html')
   const elements = Object.values(xmlDoc.getElementsByTagName('*'))
   errorPairs.forEach(([err, match]) => {
-    const matchInfo = { errors: err }
+    const matchInfo = { errors: err, tagName: match.node.name }
     const { attributes } = match.node
     let element
     // TODO: Ideally this would work for mathml elements too
