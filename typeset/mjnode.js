@@ -76,7 +76,7 @@ const startAPI = (log) => {
   mjStarted = true
 }
 
-const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
+const convertMathML = async (log, mathEntries, outputFormat, total, done, handleErrors) => {
   if (!mjStarted) {
     startAPI(log)
   }
@@ -87,6 +87,7 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
   let numDone = done
   const convertedCss = new Set()
   let index = 0
+  const errorPairs = []
   const promises = mathEntries.map(entry => {
     const id = done + index
     const mathSource = entry.mathSource
@@ -129,10 +130,14 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done) => {
         if (css != null) {
           convertedCss.add(css)
         }
-      })
+      }).catch((err) => { errorPairs.push([err, entry]) })
   })
 
   await Promise.all(promises)
+  if (errorPairs.length > 0) {
+    handleErrors(errorPairs)
+    throw new Error('An error occurred while converting math.')
+  }
   log.info(`Converted ${numDone} elements.`)
   return [...convertedCss.keys()]
 }

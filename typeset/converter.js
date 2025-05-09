@@ -1,6 +1,6 @@
 const path = require('path')
 const fileExists = require('file-exists')
-const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
+const { XMLSerializer } = require('@xmldom/xmldom')
 const { scanXML, looseTagEq } = require('./scan-xml')
 const { PARAS } = require('./paras')
 const sax = require('sax')
@@ -9,6 +9,7 @@ const fs = require('fs')
 const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
 const hljsLineNumbers = require('./hljs-line-numbers')
+const { parseXML, ancestorOrSelf } = require('./dom-utils')
 
 // Status codes
 const STATUS_CODE = {
@@ -16,27 +17,37 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
-class ParseError extends Error { }
-
-function parseXML (xmlString) {
-  const locator = { lineNumber: 0, columnNumber: 0 }
-  const cb = /* istanbul ignore next */ () => {
-    const pos = {
-      line: locator.lineNumber - 1,
-      character: locator.columnNumber - 1
+const makeMathErrorHandler = (inputPath, log) => (errorPairs) => {
+  const xmlString = fs.readFileSync(inputPath, { encoding: 'utf-8' })
+  const xmlDoc = parseXML(xmlString, 'text/html')
+  const elements = Object.values(xmlDoc.getElementsByTagName('*'))
+  errorPairs.forEach(([err, match]) => {
+    const matchInfo = { errors: err, tagName: match.node.name }
+    const { attributes } = match.node
+    let element
+    // TODO: Ideally this would work for mathml elements too
+    if ('data-math' in attributes) {
+      const dataMath = attributes['data-math']
+      element = elements.find((el) => el.getAttribute('data-math') === dataMath)
     }
-    throw new ParseError(`ParseError: ${JSON.stringify(pos)}`)
-  }
-  const p = new DOMParser({
-    locator,
-    errorHandler: {
-      warning: console.warn,
-      error: cb,
-      fatalError: cb
+    // If we found an element, walk up the tree and try to gather useful information
+    if (element) {
+      const targetAttributes = [
+        'data-sm',
+        'data-math',
+        'data-injected-from-url',
+        'data-injected-from-nickname',
+        'data-injected-from-version'
+      ]
+      for (const el of ancestorOrSelf(element)) {
+        targetAttributes.forEach((attrName) => {
+          matchInfo[attrName] = matchInfo[attrName] || el.getAttribute(attrName)
+        })
+        if (matchInfo['data-sm']) break
+      }
     }
+    log.error(JSON.stringify(matchInfo, Object.keys(matchInfo).filter((k) => matchInfo[k]), 2))
   })
-  const doc = p.parseFromString(xmlString)
-  return doc
 }
 
 const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight) => {
@@ -102,7 +113,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
             ? match.node.attributes['data-math']
             : match.element,
           posStart: match.posStart,
-          posEnd: match.posEnd
+          posEnd: match.posEnd,
+          node: match.node
         }
         mathEntries.push(replacement)
         sortedReplacements.push(replacement)
@@ -131,11 +143,12 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   await highlightCodeElements(codeEntries)
 
   const allUniqueCss = new Set()
+  const handleErrors = makeMathErrorHandler(inputPath, log)
   for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
     const start = batchSize * batch
     const end = Math.min(batchSize * batch + batchSize, mathEntries.length)
     log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
-    const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start)
+    const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start, handleErrors)
     allUniqueCss.add(uniqueCss)
   }
 

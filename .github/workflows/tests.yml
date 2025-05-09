@@ -3,24 +3,21 @@ name: tests
 on:
   pull_request:
   push:
-    branches:
-      - main
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0' # weekly
 jobs:
   tests:
     timeout-minutes: 30
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '12'
+          node-version: '18'
       - name: Setup
         run: |
-          npm install -g codecov
           npm install
       - name: Test
         run: |
           npm run-script test
-          codecov
