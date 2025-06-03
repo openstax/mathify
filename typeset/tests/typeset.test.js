@@ -172,6 +172,7 @@ test('Convert inline code tags and block pre tags', async (done) => {
 }, 3000)
 
 test('Error logging', async (done) => {
+  jest.spyOn(console, 'error').mockImplementation(() => {})
   const messages = []
   const logCapture = {
     info: jest.fn(),
@@ -205,5 +206,6 @@ test('Error logging', async (done) => {
     ]
   )
 
+  jest.restoreAllMocks()
   done()
 }, 30000)
