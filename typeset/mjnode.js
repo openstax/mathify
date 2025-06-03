@@ -104,8 +104,7 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done, handle
     log.debug(`Typeset config: ${JSON.stringify(typesetConfig)}`)
     return mjAPI.typeset(typesetConfig)
       .then((result) => {
-        const { errors, svg, css } = result
-        let { html, mml } = result // later, remove &nbsp; since it is not valid XHTML
+        const { errors, svg, css, html, mml } = result
         if (errors) {
           log.fatal(errors)
           throw new Error(`Problem converting using MathJax. id="${id}"`)
@@ -119,13 +118,12 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done, handle
           log.info(`Typesetting Progress: ${percent}%`)
           prevTime = now
         }
-        // remove &nbsp; since it is not valid XHTML
-        if (html) {
-          html = html.replace(/&nbsp;/g, '&#160;')
-        } else if (mml && mml.indexOf('&nbsp;') !== -1) {
+        // mml should not contain &nbsp;
+        if (mml && mml.indexOf('&nbsp;') !== -1) {
           throw new Error('I thought this output was more strict!')
         }
-        entry.substitution = svg || html || mml
+        // remove &nbsp; since it is not valid XHTML
+        entry.substitution = (svg || html)?.replace(/&nbsp;/g, '&#160;') || mml
         // store css in a separate map to deduplicate
         if (css != null) {
           convertedCss.add(css)
