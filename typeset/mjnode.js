@@ -1,5 +1,6 @@
 const path = require('path')
 const mjAPI = require('mathjax-node')
+const { assertTrue } = require('./helpers')
 let mjStarted = false
 
 const startAPI = (log) => {
@@ -104,8 +105,8 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done, handle
     log.debug(`Typeset config: ${JSON.stringify(typesetConfig)}`)
     return mjAPI.typeset(typesetConfig)
       .then((result) => {
-        const { errors, svg, css } = result
-        let { html, mml } = result // later, remove &nbsp; since it is not valid XHTML
+        const { errors, svg, css, html, mml } = result
+        /* istanbul ignore next (I don't think this actually works as expected) */
         if (errors) {
           log.fatal(errors)
           throw new Error(`Problem converting using MathJax. id="${id}"`)
@@ -114,18 +115,20 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done, handle
 
         // Print progress every 10 seconds
         const now = Date.now()
+        /* istanbul ignore next (testing this would require some pretty big changes) */
         if (now - prevTime > 10 * 1000 /* 10 seconds */) {
           const percent = Math.floor(100 * numDone / total)
           log.info(`Typesetting Progress: ${percent}%`)
           prevTime = now
         }
-        // remove &nbsp; since it is not valid XHTML
-        if (html) {
-          html = html.replace(/&nbsp;/g, '&#160;')
-        } else if (mml && mml.indexOf('&nbsp;') !== -1) {
-          throw new Error('I thought this output was more strict!')
+        if (mml) {
+          // mml should not contain &nbsp;
+          assertTrue(mml.indexOf('&nbsp;') === -1, 'I thought this output was more strict!')
+          entry.substitution = mml
+        } else {
+          // remove &nbsp; since it is not valid XHTML
+          entry.substitution = (svg || html)?.replace(/&nbsp;/g, '&#160;')
         }
-        entry.substitution = svg || html || mml
         // store css in a separate map to deduplicate
         if (css != null) {
           convertedCss.add(css)
