@@ -106,7 +106,7 @@ const convertMathML = async (log, mathEntries, outputFormat, total, done, handle
     return mjAPI.typeset(typesetConfig)
       .then((result) => {
         const { errors, svg, css, html, mml } = result
-        /* istanbul ignore next (I don't this actually works as expected) */
+        /* istanbul ignore next (I don't think this actually works as expected) */
         if (errors) {
           log.fatal(errors)
           throw new Error(`Problem converting using MathJax. id="${id}"`)
