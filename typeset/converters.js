@@ -228,6 +228,7 @@ class TexMmlToSvg extends JaxBase {
         : await MathJax.tex2svgPromise(item, options)
       const svg = adaptor.getElement('svg', node)
       filterNode(adaptor, node, speech, braille)
+      // Special case for empty mtr breaking table speech generation
       if (speech.length === 0 && isMml) {
         const parsed = adaptor.parse(item)
         const toRemove = []
@@ -271,7 +272,7 @@ class TexToMml extends JaxBase {
   async convert (math, chunkSize = 3000) {
     const options = this.options.typesetOptions ?? {}
     const doConvert = async (item) => {
-      return await MathJax.tex2mmlPromise(String(item), options)
+      return await MathJax.tex2mmlPromise(item, options)
     }
     return await this.convertMath(math, doConvert, chunkSize)
   }
