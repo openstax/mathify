@@ -142,15 +142,8 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   // Prepare code highlighting
   await highlightCodeElements(codeEntries)
 
-  const allUniqueCss = new Set()
   const handleErrors = makeMathErrorHandler(inputPath, log)
-  for (let batch = 0; batch < Math.ceil(mathEntries.length / batchSize); batch++) {
-    const start = batchSize * batch
-    const end = Math.min(batchSize * batch + batchSize, mathEntries.length)
-    log.info(`Converting math elements ${start} to ${end} of ${mathEntries.length}`)
-    const uniqueCss = await mjnodeConverter.convertMathML(log, mathEntries.slice(start, end), outputFormat, mathEntries.length, start, handleErrors)
-    allUniqueCss.add(uniqueCss)
-  }
+  const allUniqueCss = await mjnodeConverter.convertMathML(log, mathEntries, outputFormat, batchSize, handleErrors)
 
   if (head !== undefined) {
     head.substitution = `${head.element.slice(0, -7)}<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`

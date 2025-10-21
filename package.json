@@ -4,25 +4,26 @@
   "scripts": {
     "start": "node ./typeset/start.js @*",
     "start:debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "jest --coverage --coverageDirectory ./.nyc_output/",
+    "test": "/usr/bin/env bash test-typeset.bash && jest",
     "lint:fix": "standard --fix --verbose",
     "watch": "jest --watch",
     "jest": "jest"
   },
   "dependencies": {
+    "@mathjax/mathjax-stix2-font": "^4.0.0",
     "@xmldom/xmldom": "^0.8.7",
     "bunyan": ">=1",
     "bunyan-format": ">=0.2",
     "dotenv": ">=6",
     "file-exists": ">=5",
     "highlight.js": "^10.5.0",
-    "mathjax": "^2.7.4",
-    "mathjax-node": ">=2",
-    "yargs": ">=15"
+    "mathjax": "^4.0.0",
+    "sax": "^1.4.1",
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/jest": ">=23",
-    "jest": ">=26",
+    "jest": "^30.2.0",
     "standard": ">=11"
   },
   "jest": {

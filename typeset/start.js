@@ -11,7 +11,7 @@ const log = bunyan.createLogger({
   stream: new BunyanFormat({ outputMode: process.env.LOG_FORMAT || 'short' })
 })
 
-const argv = yargs
+const argv = yargs(process.argv)
   .option('xhtml', {
     alias: 'i',
     describe: 'Input XHTML File'
@@ -31,7 +31,7 @@ const argv = yargs
   })
   .option('format', {
     alias: 'f',
-    describe: 'Output format for MathJax Conversion: html, svg. Default: html'
+    describe: 'Output format for MathJax Conversion: html, svg. Default: svg'
   })
   .option('batch-size', {
     alias: 'b',
@@ -43,7 +43,7 @@ const argv = yargs
 
 const pathToInput = path.resolve(argv.xhtml)
 const pathToCss = argv.css ? path.resolve(argv.css) : null
-let outputFormat = 'html'
+let outputFormat = 'svg'
 const batchSize = Number(argv.batchSize) || 3000
 
 if (argv.batchSize && !String(argv.batchSize).match(/^[0-9]+$/)) {
@@ -51,7 +51,7 @@ if (argv.batchSize && !String(argv.batchSize).match(/^[0-9]+$/)) {
 }
 
 if (argv.format) {
-  if (['svg', 'html', 'mathml'].indexOf(argv.format.toLowerCase()) >= 0) {
+  if (['svg', 'mathml'].indexOf(argv.format.toLowerCase()) >= 0) {
     outputFormat = argv.format.toLowerCase()
     log.debug(`Output format set to ${argv.format.toLowerCase()}`)
   } else {

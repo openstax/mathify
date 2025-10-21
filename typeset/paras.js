@@ -54,7 +54,7 @@ function PARAS (replacements, input, output) {
       while (true) {
         const replacement = replacements.shift()
         output.write(line.slice(lastEndCol, replacement.posStart[1] - 1))
-        output.write(expectValue(replacement.substitution))
+        output.write(expectValue(replacement.substitution, JSON.stringify(replacement)))
         // We cannot do any more now
         if (replacement.posEnd[0] > lineNumber) {
           replaceTo = replacement.posEnd
