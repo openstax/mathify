@@ -24,14 +24,14 @@ test('tex-mml-svg snapshot', async () => {
   execSync(
     `${process.argv[0]} ${startPath} -i ${inputPath} -o ${outputPath} -f svg`,
     { stdio: [0, 0, 0] }
-  );
-  expect(await getHashFile(outputPath)).toMatchInlineSnapshot(`"784f5b89f7d2c338f397858099f23f20f50080760e0ebed980c7b00a7168d1eb"`)
+  )
+  expect(await getHashFile(outputPath)).toMatchInlineSnapshot('"784f5b89f7d2c338f397858099f23f20f50080760e0ebed980c7b00a7168d1eb"')
 }, 30000)
 
 test('tex-mml snapshot', async () => {
   const inputPath = path.join(__dirname, 'seed', 'test-latex.xhtml')
   const outputPath = path.join(__dirname, 'mathml.output.xhtml')
   await fs.promises.rm(outputPath, { force: true })
-  execSync(`${process.argv[0]} ${startPath} -i ${inputPath} -o ${outputPath} -f mathml`);
-  expect(await getHashFile(outputPath)).toMatchInlineSnapshot(`"0df93f18fc7850a784fc3947cf7b0084e05f3aaa4fbfead8bc36e8fab2fcd527"`)
+  execSync(`${process.argv[0]} ${startPath} -i ${inputPath} -o ${outputPath} -f mathml`)
+  expect(await getHashFile(outputPath)).toMatchInlineSnapshot('"0df93f18fc7850a784fc3947cf7b0084e05f3aaa4fbfead8bc36e8fab2fcd527"')
 }, 30000)
