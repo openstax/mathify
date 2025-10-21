@@ -1,2 +1,0 @@
-784f5b89f7d2c338f397858099f23f20f50080760e0ebed980c7b00a7168d1eb svg.output.xhtml
-0df93f18fc7850a784fc3947cf7b0084e05f3aaa4fbfead8bc36e8fab2fcd527 mathml.output.xhtml

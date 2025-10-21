@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node ./typeset/start.js @*",
     "start:debug": "BROWSER_DEBUGGER=true node --inspect-brk ./typeset/start.js @*",
-    "test": "/usr/bin/env bash test-typeset.bash && jest",
+    "test": "jest",
     "lint:fix": "standard --fix --verbose",
     "watch": "jest --watch",
     "jest": "jest"

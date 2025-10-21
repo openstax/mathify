@@ -113,7 +113,6 @@ class JaxBase extends EventEmitter {
         require: (file) => require(file)
       },
       output: {
-        // exFactor: 3,
         linebreaks: {
           inline: true
         },
