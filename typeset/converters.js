@@ -256,9 +256,9 @@ class TexMmlToSvg extends JaxBase {
       }
       if (speech.length === 0) {
         emit('diagnostic', { type: 'no_speech', source: item })
-      } else {
-        addSpeech(adaptor, svg, { speech, braille })
+        speech.push('Nondescript Math');
       }
+      addSpeech(adaptor, svg, { speech, braille })
       adaptor.setAttribute(svg, 'style', adaptor.getAttribute(node, 'style'))
       return adaptor.outerHTML(svg)
         .replace('<defs>', `<defs>\n<style>${css.join('')}</style>`)
