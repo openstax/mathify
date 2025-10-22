@@ -77,7 +77,14 @@ const filterNode = (adaptor, node, speech, braille, removeSemantics = true) => {
 
 const addSpeech = (adaptor, node, { speech, braille }) => {
   if (speech && speech.length > 0) {
-    adaptor.setAttribute(node, 'aria-label', speech[0])
+    if (adaptor.kind(node) === 'svg') {
+      const caption = adaptor.text(speech[0])
+      const title = adaptor.create('title')
+      adaptor.append(title, caption)
+      adaptor.append(node, title)
+    } else {
+      adaptor.setAttribute(node, 'aria-label', speech[0])
+    }
   }
   if (braille && braille.length > 0) {
     adaptor.setAttribute(node, 'aria-braillelabel', braille[0])
