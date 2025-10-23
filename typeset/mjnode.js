@@ -34,6 +34,7 @@ const convertMathML = async (log, mathEntries, outputFormat, batchSize, handleEr
   results.forEach(({ math, error, css }, idx) => {
     const entry = mathEntries[idx]
     if (error) {
+      console.error(error.message)
       errorPairs.push([[error.message, error.source].join('\n'), entry])
     } else {
       if (math) entry.substitution = math.replace(/&nbsp;/g, '&#160;')

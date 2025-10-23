@@ -92,7 +92,7 @@ const addSpeech = (adaptor, node, { speech, braille }) => {
   const children = adaptor.kind(node) === 'svg'
     ? [adaptor.getElement('[data-mml-node="math"]', node)]
     : adaptor.childNodes(node)
-  for (const child of children) {
+  for (const child of children.filter((c) => c !== undefined)) {
     if (adaptor.kind(child).charAt(0) !== '#') {
       adaptor.setAttribute(child, 'aria-hidden', 'true')
     }
@@ -273,9 +273,11 @@ class TexMmlToSvg extends JaxBase {
         this.runHook('diagnostic', { type: 'no_speech', source: item })
         speech.push('Nondescript Math')
       }
-      addSpeech(adaptor, svg, { speech, braille })
-      adaptor.setAttribute(svg, 'style', adaptor.getAttribute(node, 'style'))
-      return adaptor.outerHTML(svg)
+      // TODO: Kinda weird to replicate the same speech to all of these.
+      adaptor.tags(node, 'svg').forEach((svg) => {
+        addSpeech(adaptor, svg, { speech, braille })
+      })
+      return adaptor.outerHTML(node)
         .replace('<defs>', `<defs>\n<style>${css.join('')}</style>`)
     }
     return await this.convertMath(math, doConvert, chunkSize)
