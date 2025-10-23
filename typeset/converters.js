@@ -99,15 +99,31 @@ const addSpeech = (adaptor, node, { speech, braille }) => {
   }
 }
 
-class JaxBase extends EventEmitter {
+class JaxBase {
   constructor (lib, options) {
-    super()
     this.mathJaxPath = options?.mathJaxPath ?? 'mathjax'
     this.lib = `${this.mathJaxPath}/${lib.replace(/(?<!\.js)$/, '.js')}`
     this.options = options ?? {}
     this.initialized = false
     this.errors = []
-    this.hooks = {}
+    this._hooks = new Map()
+  }
+
+  getHook (kind) {
+    let hook = this._hooks.get(kind)
+    if (!hook) {
+      hook = []
+      this._hooks.set(kind, hook)
+    }
+    return hook
+  }
+
+  addHook (kind, cb) {
+    this.getHook(kind).push(cb)
+  }
+
+  runHook (kind, args) {
+    this.getHook(kind).forEach((hook) => hook({ args }))
   }
 
   get config () {
@@ -181,7 +197,7 @@ class JaxBase extends EventEmitter {
     for (let i = 0; ; i += chunkSize) {
       const chunk = math.slice(i, chunkSize + i)
       if (chunk.length === 0) break
-      this.emit('progress', { from: i, to: i + chunk.length, total })
+      this.runHook('progress', { from: i, to: i + chunk.length, total })
       results.push(...(await Promise.all(chunk.map(wrapper))))
     }
     return results
@@ -225,7 +241,6 @@ class TexMmlToSvg extends JaxBase {
   async convert (math, chunkSize = 3000) {
     const { adaptor, css } = this
     const options = this.options.typesetOptions ?? {}
-    const emit = this.emit.bind(this)
     const doConvert = async (item) => {
       const speech = []
       const braille = []
@@ -255,8 +270,8 @@ class TexMmlToSvg extends JaxBase {
         }
       }
       if (speech.length === 0) {
-        emit('diagnostic', { type: 'no_speech', source: item })
-        speech.push('Nondescript Math');
+        this.runHook('diagnostic', { type: 'no_speech', source: item })
+        speech.push('Nondescript Math')
       }
       addSpeech(adaptor, svg, { speech, braille })
       adaptor.setAttribute(svg, 'style', adaptor.getAttribute(node, 'style'))

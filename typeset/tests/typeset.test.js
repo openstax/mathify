@@ -25,7 +25,7 @@ test('tex-mml-svg snapshot', async () => {
     `${process.argv[0]} ${startPath} -i ${inputPath} -o ${outputPath} -f svg`,
     { stdio: [0, 0, 0] }
   )
-  expect(await getHashFile(outputPath)).toMatchInlineSnapshot(`"86608e7f4f65da17c1e62a982a3731e1e061f88e49c6943ce2cc14121bb44f2f"`)
+  expect(await getHashFile(outputPath)).toMatchInlineSnapshot('"86608e7f4f65da17c1e62a982a3731e1e061f88e49c6943ce2cc14121bb44f2f"')
 }, 30000)
 
 test('tex-mml snapshot', async () => {

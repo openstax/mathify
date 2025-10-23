@@ -18,11 +18,15 @@ const convertMathML = async (log, mathEntries, outputFormat, batchSize, handleEr
   const convertedCss = new Set()
   const converter = getConverter(outputFormat)
   await converter.init()
-  converter.on('progress', ({ from, to, total }) => {
+  converter.addHook('progress', ({ args: { from, to, total } }) => {
     log.info(`Converting math elements ${from} to ${to} of ${total}`)
   })
-  converter.on('diagnostic', (diag) => {
-    if (diag.type === 'no_speech') { log.warn(`Failed to generate speech: ${diag.source}`) } else { log.warn(diag) }
+  converter.addHook('diagnostic', ({ args: diag }) => {
+    log.warn(
+      diag.type === 'no_speech'
+        ? `Failed to generate speech: ${diag.source}`
+        : diag
+    )
   })
   const errorPairs = []
   const math = mathEntries.map(({ mathSource }) => mathSource)
