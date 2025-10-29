@@ -50,7 +50,7 @@ const makeMathErrorHandler = (inputPath, log) => (errorPairs) => {
   })
 }
 
-const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight) => {
+const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, outputFormat, batchSize, highlight, locale) => {
   const timeOfStart = new Date().getTime()
 
   // Check that the XHTML and CSS files exist
@@ -143,7 +143,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   await highlightCodeElements(codeEntries)
 
   const handleErrors = makeMathErrorHandler(inputPath, log)
-  const allUniqueCss = await mjnodeConverter.convertMathML(log, mathEntries, outputFormat, batchSize, handleErrors)
+  const allUniqueCss = await mjnodeConverter.convertMathML(log, mathEntries, outputFormat, batchSize, handleErrors, { locale })
 
   if (head !== undefined) {
     head.substitution = `${head.element.slice(0, -7)}<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`

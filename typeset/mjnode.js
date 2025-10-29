@@ -4,19 +4,20 @@ const typesetOptions = {
   display: false
 }
 
-const getConverter = (outputFormat) => {
+const getConverter = (outputFormat, options) => {
+  const combinedOptions = { typesetOptions, ...options }
   switch (outputFormat) {
-    case 'mathml': return new TexToMml({ typesetOptions })
-    case 'svg': return new TexMmlToSvg({ typesetOptions })
+    case 'mathml': return new TexToMml(combinedOptions)
+    case 'svg': return new TexMmlToSvg(combinedOptions)
     default: throw new Error(`Unknown output format: ${outputFormat}`)
   }
 }
 
-const convertMathML = async (log, mathEntries, outputFormat, batchSize, handleErrors) => {
+const convertMathML = async (log, mathEntries, outputFormat, batchSize, handleErrors, options) => {
   log.debug(`There are ${mathEntries.length} elements to process...`)
   log.debug('Starting conversion of mapped MathML elements with mathjax-node...')
   const convertedCss = new Set()
-  const converter = getConverter(outputFormat)
+  const converter = getConverter(outputFormat, options)
   await converter.init()
   converter.addHook('progress', ({ args: { from, to, total } }) => {
     log.info(`Converting math elements ${from} to ${to} of ${total}`)

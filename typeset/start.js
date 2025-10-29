@@ -29,6 +29,11 @@ const argv = yargs(process.argv)
     default: false,
     describe: 'Enable insertion of code highlighting'
   })
+  .option('locale', {
+    alias: 'l',
+    describe: 'Locale for speech',
+    default: 'en'
+  })
   .option('format', {
     alias: 'f',
     describe: 'Output format for MathJax Conversion: html, svg. Default: svg'
@@ -70,7 +75,7 @@ if (!/\.xhtml$/.test(argv.output)) {
 }
 
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight)
+converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight, argv.locale)
   .then(exitStatus => process.exit(exitStatus))
   .catch(err => {
     log.fatal(err)

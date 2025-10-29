@@ -151,7 +151,7 @@ class JaxBase {
           // https://github.com/mathjax/MathJax/issues/3185
           const { MmlMath } = MathJax._.core.MmlTree.MmlNodes.math
           const { MmlMstyle } = MathJax._.core.MmlTree.MmlNodes.mstyle
-          MmlMath.defaults.scriptsizemultiplier = MmlMstyle.defaults.scriptsizemultiplier = 0.8
+          MmlMath.defaults.scriptminsize = MmlMstyle.defaults.scriptminsize = 0.8
 
           MathJax.startup.defaultReady()
         }
@@ -233,7 +233,7 @@ class TexMmlToSvg extends JaxBase {
       svg: {
         fontCache: 'local',
         blacker: 0,
-        scale: 1.15
+        scale: 1.3
       }
     })
   }
@@ -248,7 +248,6 @@ class TexMmlToSvg extends JaxBase {
       const node = isMml
         ? await MathJax.mathml2svgPromise(item, options)
         : await MathJax.tex2svgPromise(item, options)
-      const svg = adaptor.getElement('svg', node)
       filterNode(adaptor, node, speech, braille)
       // Special case for empty mtr breaking table speech generation
       if (speech.length === 0 && isMml) {
