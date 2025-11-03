@@ -1,5 +1,3 @@
-const { EventEmitter } = require('node:events')
-
 const mmlPattern = /^\s*<(\w+:)?math/
 
 const mergeByIndex = (lhs, rhs, options) => {
@@ -151,7 +149,7 @@ class JaxBase {
           // https://github.com/mathjax/MathJax/issues/3185
           const { MmlMath } = MathJax._.core.MmlTree.MmlNodes.math
           const { MmlMstyle } = MathJax._.core.MmlTree.MmlNodes.mstyle
-          MmlMath.defaults.scriptminsize = MmlMstyle.defaults.scriptminsize = 0.8
+          MmlMath.defaults.scriptsizemultiplier = MmlMstyle.defaults.scriptsizemultiplier = 0.8
 
           MathJax.startup.defaultReady()
         }
@@ -233,7 +231,7 @@ class TexMmlToSvg extends JaxBase {
       svg: {
         fontCache: 'local',
         blacker: 0,
-        scale: 1.3
+        scale: 1.15
       }
     })
   }
@@ -263,7 +261,7 @@ class TexMmlToSvg extends JaxBase {
         filterMath(parsed.body)
         toRemove.forEach(adaptor.remove.bind(adaptor))
         if (mathNode) {
-          const speechReadyItem = adaptor.outerHTML(mathNode)
+          const speechReadyItem = adaptor.serializeXML(mathNode)
           const speechNode = await MathJax.mathml2svgPromise(speechReadyItem, options)
           filterNode(adaptor, speechNode, speech, braille)
         }
@@ -276,7 +274,7 @@ class TexMmlToSvg extends JaxBase {
       adaptor.tags(node, 'svg').forEach((svg) => {
         addSpeech(adaptor, svg, { speech, braille })
       })
-      return adaptor.outerHTML(node)
+      return adaptor.serializeXML(node)
         .replace('<defs>', `<defs>\n<style>${css.join('')}</style>`)
     }
     return await this.convertMath(math, doConvert, chunkSize)
