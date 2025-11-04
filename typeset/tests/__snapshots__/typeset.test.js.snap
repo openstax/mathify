@@ -1,30 +1,30 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Convert inline code tags and block pre tags 1`] = `
-"<html xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\">
-  <body itemscope=\\"itemscope\\" itemtype=\\"http://schema.org/Book\\">
+"<html xmlns="http://www.w3.org/1999/xhtml" xmlns:m="http://www.w3.org/1998/Math/MathML">
+  <body itemscope="itemscope" itemtype="http://schema.org/Book">
 
-<table class=\\"line-numbering hljs-ln\\" data-lang=\\"python\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\">1</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">my_integer = <span class=\\"hljs-number\\">5</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"2\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"2\\">2</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"2\\">  my_floating_point = <span class=\\"hljs-number\\">26.2</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"3\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"3\\">3</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"3\\">  my_Boolean = <span class=\\"hljs-literal\\">True</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"4\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"4\\">4</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"4\\">  my_string = <span class=\\"hljs-string\\">'characters'</span></td></tr></table>
+<table class="line-numbering hljs-ln" data-lang="python"><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="1"><div class="hljs-ln-n" data-line-number="1">1</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="1">my_integer = <span class="hljs-number">5</span></td></tr><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="2"><div class="hljs-ln-n" data-line-number="2">2</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="2">  my_floating_point = <span class="hljs-number">26.2</span></td></tr><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="3"><div class="hljs-ln-n" data-line-number="3">3</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="3">  my_Boolean = <span class="hljs-literal">True</span></td></tr><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="4"><div class="hljs-ln-n" data-line-number="4">4</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="4">  my_string = <span class="hljs-string">'characters'</span></td></tr></table>
 
-<pre lang=\\"python\\">
-  print(<span class=\\"hljs-string\\">'Hi'</span>)
+<pre lang="python">
+  print(<span class="hljs-string">'Hi'</span>)
   a = b + c
 </pre>
 
 <p>
-  <table class=\\"line-numbering hljs-ln\\" data-lang=\\"python\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\">1</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">hello = <span class=\\"hljs-number\\">5</span></td></tr></table>
+  <table class="line-numbering hljs-ln" data-lang="python"><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="1"><div class="hljs-ln-n" data-line-number="1">1</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="1">hello = <span class="hljs-number">5</span></td></tr></table>
 </p>
 
 <p>
-  <table class=\\"line-numbering hljs-ln\\" data-lang=\\"python\\"><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"1\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"1\\">1</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"1\\">x = <span class=\\"hljs-number\\">1</span></td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"2\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"2\\">2</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"2\\">    </td></tr><tr><td class=\\"hljs-ln-line hljs-ln-numbers\\" data-line-number=\\"3\\"><div class=\\"hljs-ln-n\\" data-line-number=\\"3\\">3</div></td><td class=\\"hljs-ln-line hljs-ln-code\\" data-line-number=\\"3\\">    y = <span class=\\"hljs-number\\">2</span></td></tr></table>
+  <table class="line-numbering hljs-ln" data-lang="python"><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="1"><div class="hljs-ln-n" data-line-number="1">1</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="1">x = <span class="hljs-number">1</span></td></tr><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="2"><div class="hljs-ln-n" data-line-number="2">2</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="2">    </td></tr><tr><td class="hljs-ln-line hljs-ln-numbers" data-line-number="3"><div class="hljs-ln-n" data-line-number="3">3</div></td><td class="hljs-ln-line hljs-ln-code" data-line-number="3">    y = <span class="hljs-number">2</span></td></tr></table>
 </p>
 
 <p>
-  <code data-lang=\\"python\\">hello = <span class=\\"hljs-number\\">5</span></code>
+  <code data-lang="python">hello = <span class="hljs-number">5</span></code>
 </p>
 
 <p>
-  <code lang=\\"python\\">print(<span class=\\"hljs-number\\">5</span>)</code>
+  <code lang="python">print(<span class="hljs-number">5</span>)</code>
 </p>
 
 </body>
@@ -32,10 +32,12 @@ exports[`Convert inline code tags and block pre tags 1`] = `
 "
 `;
 
-exports[`Success if converter finished without errors FORMAT HTML. 1`] = `"4ec8f2f5d38cb84f0a1a90013657292f6a53ffcfd6e0c0ce07ed13faf3e4d289"`;
+exports[`Success if converter finished without errors FORMAT HTML. 1`] = `"900a1151666b2b57b651c9c1c9c5cd5883bd39c2b72a39c4ae34c0a547f4da91"`;
 
-exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"9102725791b223ab8e8945097fe8050603d964edb0ed1bf17868cae9e9a85d41"`;
+exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"f87cdfc75e29a12209960fa48fd4b1f83d246a91a085b248331be26635ccb61e"`;
 
-exports[`Success if convertered LaTeX functions with success. 1`] = `"1597bf77d3971a31fcd50daef5654847946ac512a4b63b397fe25c4951bfba75"`;
+exports[`Success if convertered LaTeX functions with success. 1`] = `"1c546d55dbe187fe11729951cf1be4bb338957be2e9296d1b983a59d51ef7eb7"`;
 
 exports[`Success if convertered LaTeX to mathml with success. 1`] = `"f5744bc949145782349ecd1e9a0ea1376b23ddf74c585b3592004854c2b87dea"`;
+
+exports[`Success if convertered LaTeX to svg with success. 1`] = `"b03babc0c2649a4fb5c9b9a927662e4b8303daf91e19d7184e4173b699df6e9f"`;

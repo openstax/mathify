@@ -1,13 +1,13 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`integration with xml scanner 1`] = `
 "<?xml version='1.0' encoding='UTF-8'?>
-<html xmlns=\\"http://www.w3.org/1999/xhtml\\" xmlns:m=\\"http://www.w3.org/1998/Math/MathML\\" xmlns:epub=\\"http://www.idpf.org/2007/ops\\">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:epub="http://www.idpf.org/2007/ops">
   Replaced math from 3,3 to 7,12
-  <img xmlns:why=\\"would-you-do-this\\" why:maybe=\\"for this reason\\"/>
-  <div xmlns:otherns=\\"something-i-made-up\\">
+  <img xmlns:why="would-you-do-this" why:maybe="for this reason"/>
+  <div xmlns:otherns="something-i-made-up">
     <a>
-      <b data-math=\\"i &lt; 3pi\\">
+      <b data-math="i &lt; 3pi">
         <c>
           Replaced math from 13,11 to 15,20
         </c>

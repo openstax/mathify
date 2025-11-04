@@ -10,6 +10,8 @@ const mjnodeConverter = require('./mjnode')
 const hljs = require('highlight.js')
 const hljsLineNumbers = require('./hljs-line-numbers')
 const { parseXML, ancestorOrSelf } = require('./dom-utils')
+const SRE = require('speech-rule-engine')
+const { assertTrue } = require('./helpers')
 
 // Status codes
 const STATUS_CODE = {
@@ -152,6 +154,57 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
     allUniqueCss.add(uniqueCss)
   }
 
+  if (outputFormat === 'svg') {
+    const mathml = []
+    const mmlConvertBatch = []
+    for (let idx = 0; idx < mathEntries.length; idx++) {
+      const entry = mathEntries[idx]
+      if (entry.node.attributes && 'data-math' in entry.node.attributes) {
+        mmlConvertBatch.push({ ...entry, idx })
+        mathml.push(undefined)
+      } else {
+        mathml.push(entry.mathSource)
+      }
+    }
+    if (mmlConvertBatch.length > 0) {
+      const originalSize = mmlConvertBatch.length
+      log.info('Converting TeX entries to mathml...')
+      while (mmlConvertBatch.length > 0) {
+        const done = originalSize - mmlConvertBatch.length
+        const batch = mmlConvertBatch.splice(0, batchSize)
+        await mjnodeConverter.convertMathML(log, batch, 'mathml', batch.length, done, handleErrors)
+        // insert mathml representation of the original TeX math
+        batch.forEach(({ substitution, idx }) => { mathml[idx] = substitution })
+      }
+    }
+    log.info('Inserting speech...')
+    const serializer = new XMLSerializer()
+    for (let idx = 0; idx < mathEntries.length; idx++) {
+      const entry = mathEntries[idx]
+      const mathSource = mathml[idx]
+      const svg = parseXML(entry.substitution).documentElement
+      const mml = parseXML(mathSource).documentElement
+      // SRE doesn't seem to like namespaces
+      const mathNoNs = cleanNamespaces(mml, [], true)
+      const speech = SRE.toSpeech(mathNoNs)
+      assertTrue(svg.tagName === 'svg', `Expected svg, got: "${svg.tagName}"`)
+      const id = `svg-title-${idx + 1}`
+      const title = parseXML(`<title id="${id}">${speech}</title>`).documentElement
+      const children = svg.childNodes
+      for (let i = 0; i < children.length;) {
+        const node = children[i]
+        if (node.tagName === 'title') {
+          node.parentNode.removeChild(node)
+          continue
+        }
+        i++
+      }
+      svg.setAttribute('aria-labelledby', id)
+      svg.appendChild(title)
+      entry.substitution = serializer.serializeToString(svg)
+    }
+  }
+
   if (head !== undefined) {
     head.substitution = `${head.element.slice(0, -7)}<style><![CDATA[\n${[...allUniqueCss.keys()].join('\n')}\n]]></style></head>`
   }
@@ -182,7 +235,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
   return STATUS_CODE.OK
 }
 
-function cleanNamespaces (el, keepNamespaces) {
+function cleanNamespaces (el, keepNamespaces, cleanPrefix = false) {
   const serializer = new XMLSerializer()
   let serialized = serializer.serializeToString(el)
   Object.values(el.attributes)
@@ -191,8 +244,15 @@ function cleanNamespaces (el, keepNamespaces) {
       attr.name.startsWith('xmlns') &&
       keepNamespaces.indexOf(attr.name) === -1
     )
-    .map(attr => ` ${attr.name}="${attr.value}"`)
-    .forEach(nsDecl => { serialized = serialized.replace(nsDecl, '') })
+    .map(attr => [attr.name.split(':')[1], ` ${attr.name}="${attr.value}"`])
+    .forEach(([prefix, nsDecl]) => {
+      serialized = serialized.replace(nsDecl, '')
+      if (cleanPrefix) {
+        serialized = serialized
+          .replace(new RegExp(`<\s*${prefix}:`, 'g'), '<')
+          .replace(new RegExp(`<\s*/\s*${prefix}:`, 'g'), '</')
+      }
+    })
   return serialized
 }
 
