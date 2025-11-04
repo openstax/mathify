@@ -34,7 +34,7 @@ exports[`Convert inline code tags and block pre tags 1`] = `
 
 exports[`Success if converter finished without errors FORMAT HTML. 1`] = `"900a1151666b2b57b651c9c1c9c5cd5883bd39c2b72a39c4ae34c0a547f4da91"`;
 
-exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"f87cdfc75e29a12209960fa48fd4b1f83d246a91a085b248331be26635ccb61e"`;
+exports[`Success if converter finished without errors FORMAT SVG. 1`] = `"d3e2ef1d3090560607a57b8a099a8009d14497533d2107ea21bd24effabe6368"`;
 
 exports[`Success if convertered LaTeX functions with success. 1`] = `"1c546d55dbe187fe11729951cf1be4bb338957be2e9296d1b983a59d51ef7eb7"`;
 

@@ -19,6 +19,32 @@ const STATUS_CODE = {
   ERROR: 111
 }
 
+const getSpeech = (log, mml) => {
+  const prepareMath = (parent) => {
+    for (let i = 0; i < parent.childNodes.length;) {
+      const node = parent.childNodes[i]
+      if (
+        looseTagEq(node?.tagName ?? '', 'mtr') &&
+        node.childNodes &&
+        node.childNodes.length === 0
+      ) {
+        node.parentNode.removeChild(node)
+        continue
+      }
+      if (node.childNodes) prepareMath(node)
+      i++
+    }
+  }
+  try {
+    prepareMath(mml)
+    const mathNoNs = cleanNamespaces(mml, [], true)
+    return SRE.toSpeech(mathNoNs);
+  } catch (e) {
+    log.error(e)
+    return 'Equation'
+  }
+}
+
 const makeMathErrorHandler = (inputPath, log) => (errorPairs) => {
   const xmlString = fs.readFileSync(inputPath, { encoding: 'utf-8' })
   const xmlDoc = parseXML(xmlString, 'text/html')
@@ -185,8 +211,7 @@ const createMapOfMathMLElements = async (log, inputPath, cssPath, outputPath, ou
       const svg = parseXML(entry.substitution).documentElement
       const mml = parseXML(mathSource).documentElement
       // SRE doesn't seem to like namespaces
-      const mathNoNs = cleanNamespaces(mml, [], true)
-      const speech = SRE.toSpeech(mathNoNs)
+      const speech = getSpeech(log, mml)
       assertTrue(svg.tagName === 'svg', `Expected svg, got: "${svg.tagName}"`)
       const id = `svg-title-${idx + 1}`
       const title = parseXML(`<title id="${id}">${speech}</title>`).documentElement
