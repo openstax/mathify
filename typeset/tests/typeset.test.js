@@ -5,7 +5,7 @@ const fileExists = require('file-exists')
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
 global.SREfeature = {
-  domain: 'clearspeak',
+  domain: 'clearspeak'
 }
 const converter = require('./../converter')
 const { createHash } = require('crypto')
@@ -145,7 +145,6 @@ test('Success if convertered LaTeX functions with success.', async () => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputLatex)).toMatchSnapshot()
-
 }, 30000)
 
 test('Success if convertered LaTeX to mathml with success.', async () => {
@@ -157,7 +156,6 @@ test('Success if convertered LaTeX to mathml with success.', async () => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputMML)).toMatchSnapshot()
-
 }, 30000)
 
 test('Success if convertered LaTeX to svg with success.', async () => {
@@ -169,7 +167,6 @@ test('Success if convertered LaTeX to svg with success.', async () => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputSVG)).toMatchSnapshot()
-
 }, 30000)
 
 test('Convert inline code tags and block pre tags', async () => {

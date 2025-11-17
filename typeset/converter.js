@@ -38,7 +38,7 @@ const getSpeech = (log, mml) => {
   try {
     prepareMath(mml)
     const mathNoNs = cleanNamespaces(mml, [], true)
-    return SRE.toSpeech(mathNoNs);
+    return SRE.toSpeech(mathNoNs)
   } catch (e) {
     log.error(e)
     return 'Equation'
