@@ -3,7 +3,6 @@ const yargs = require('yargs')
 require('dotenv').config()
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
-const converter = require('./converter')
 
 const log = bunyan.createLogger({
   name: 'node-typeset',
@@ -19,6 +18,11 @@ const argv = yargs
   .option('css', {
     alias: 'c',
     describe: 'Input CSS File'
+  })
+  .option('locale', {
+    alias: 'l',
+    describe: 'Locale for speech generation',
+    default: 'en'
   })
   .option('output', {
     alias: 'o',
@@ -69,8 +73,13 @@ if (!/\.xhtml$/.test(argv.output)) {
   throw new Error('The output file should end with \'.xhtml\'')
 }
 
+global.SREfeature = {
+  domain: 'clearspeak',
+  locale: argv.locale
+}
+
 log.debug(`Converting Math Using XHTML="${argv.xhtml}" and CSS="${argv.css}"`)
-converter.createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight)
+require('./converter').createMapOfMathMLElements(log, pathToInput.replace(/\\/g, '/'), pathToCss, argv.output, outputFormat, batchSize, argv.highlight)
   .then(exitStatus => process.exit(exitStatus))
   .catch(err => {
     log.fatal(err)

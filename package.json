@@ -18,6 +18,7 @@
     "highlight.js": "^10.5.0",
     "mathjax": "^2.7.4",
     "mathjax-node": ">=2",
+    "speech-rule-engine": "^4.0.0",
     "yargs": ">=15"
   },
   "devDependencies": {

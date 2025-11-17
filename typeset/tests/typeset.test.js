@@ -4,6 +4,9 @@ const fs = require('fs')
 const fileExists = require('file-exists')
 const bunyan = require('bunyan')
 const BunyanFormat = require('bunyan-format')
+global.SREfeature = {
+  domain: 'clearspeak'
+}
 const converter = require('./../converter')
 const { createHash } = require('crypto')
 
@@ -101,19 +104,17 @@ function getHashFile (fpath) {
   })
 }
 
-test('Fail if user provide wrong path for input file (Math).', async (done) => {
+test('Fail if user provide wrong path for input file (Math).', async () => {
   const res = await converter.createMapOfMathMLElements(log, './wrong/path.xhtml', pathToCss, pathToOutput, 'html', 3000, true)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
-  done()
 })
 
-test('Fail if user provide wrong path for css file.', async (done) => {
+test('Fail if user provide wrong path for css file.', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToInput, './wrong/path.xhtml', pathToOutput, 'html', 3000, true)
   expect(res).toBe(converter.STATUS_CODE.ERROR)
-  done()
 })
 
-test('Success if converter finished without errors FORMAT HTML.', async (done) => {
+test('Success if converter finished without errors FORMAT HTML.', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutput, 'html', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutput)) {
@@ -122,10 +123,9 @@ test('Success if converter finished without errors FORMAT HTML.', async (done) =
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutput)).toMatchSnapshot()
-  done()
 }, 30000)
 
-test('Success if converter finished without errors FORMAT SVG.', async (done) => {
+test('Success if converter finished without errors FORMAT SVG.', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToInput, pathToCss, pathToOutputSVG, 'svg', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputSVG)) {
@@ -134,10 +134,9 @@ test('Success if converter finished without errors FORMAT SVG.', async (done) =>
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputSVG)).toMatchSnapshot()
-  done()
 }, 30000)
 
-test('Success if convertered LaTeX functions with success.', async (done) => {
+test('Success if convertered LaTeX functions with success.', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputLatex, 'html', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputLatex)) {
@@ -146,11 +145,9 @@ test('Success if convertered LaTeX functions with success.', async (done) => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputLatex)).toMatchSnapshot()
-
-  done()
 }, 30000)
 
-test('Success if convertered LaTeX to mathml with success.', async (done) => {
+test('Success if convertered LaTeX to mathml with success.', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputMML, 'mathml', 3000, true)
   let isOutputFile = false
   if (fileExists.sync(pathToOutputMML)) {
@@ -159,19 +156,27 @@ test('Success if convertered LaTeX to mathml with success.', async (done) => {
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(isOutputFile).toBeTruthy()
   expect(await getHashFile(pathToOutputMML)).toMatchSnapshot()
-
-  done()
 }, 30000)
 
-test('Convert inline code tags and block pre tags', async (done) => {
+test('Success if convertered LaTeX to svg with success.', async () => {
+  const res = await converter.createMapOfMathMLElements(log, pathToInputLatex, pathToCss, pathToOutputSVG, 'svg', 3000, true)
+  let isOutputFile = false
+  if (fileExists.sync(pathToOutputMML)) {
+    isOutputFile = true
+  }
+  expect(res).toBe(converter.STATUS_CODE.OK)
+  expect(isOutputFile).toBeTruthy()
+  expect(await getHashFile(pathToOutputSVG)).toMatchSnapshot()
+}, 30000)
+
+test('Convert inline code tags and block pre tags', async () => {
   const res = await converter.createMapOfMathMLElements(log, pathToCodeInput, pathToCss, pathToCodeOutput, 'html', 3000, true)
   expect(fileExists.sync(pathToCodeOutput))
   expect(res).toBe(converter.STATUS_CODE.OK)
   expect(fs.readFileSync(pathToCodeOutput, 'utf-8')).toMatchSnapshot()
-  done()
 }, 3000)
 
-test('Error logging', async (done) => {
+test('Error logging', async () => {
   jest.spyOn(console, 'error').mockImplementation(() => {})
   const messages = []
   const logCapture = {
@@ -207,5 +212,4 @@ test('Error logging', async (done) => {
   )
 
   jest.restoreAllMocks()
-  done()
 }, 30000)

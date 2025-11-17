@@ -13,15 +13,15 @@ function format (format, args) {
 }
 
 function addCodeLineNumbers (inputHtml) {
-  var lines = getLines(inputHtml.trim())
+  const lines = getLines(inputHtml.trim())
   // if last line contains only carriage return remove it
   if (lines.length === 0) {
     /* istanbul ignore next (maybe empty code element should be an error?) */
     return inputHtml
   }
 
-  var html = ''
-  for (var i = 0, l = lines.length; i < l; i++) {
+  let html = ''
+  for (let i = 0, l = lines.length; i < l; i++) {
     html += format(
       '<tr>' +
                 '<td class="{0} {1}" {3}="{5}">' +
