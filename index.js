@@ -10,10 +10,7 @@ const main = async () => {
 
   for await (const line of rl) {
     if (!line.trim()) continue;
-    const batch = JSON.parse(line).map((record) => ({
-      ...record,
-      mathSource: record.math,
-    }));
+    const batch = JSON.parse(line);
     await convertMathML(
       logger,
       batch,
