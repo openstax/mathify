@@ -34,5 +34,8 @@
     "env": [
       "jest"
     ]
+  },
+  "bin": {
+    "mathify": "index.js"
   }
 }
