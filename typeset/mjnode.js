@@ -44,7 +44,6 @@ const convertMathML = async (log, mathEntries, outputFormat, batchSize, handleEr
   })
   if (errorPairs.length > 0) {
     handleErrors(errorPairs)
-    throw new Error('An error occurred while converting math.')
   }
   log.info(`Converted ${results.length} elements.`)
   converter.done()
